@@ -1055,9 +1055,11 @@ HAL.guru.kehadiran = async function () {
   var el = $('hal-guru-kehadiran');
   var bulanDefault = bulanBerjalan();
   el.innerHTML = '<h2>Kehadiran</h2>' +
-    '<h3>Rekap Bulanan</h3>' +
+    '<h3>Rekap Kehadiran</h3>' +
+    '<p class="muted">Isi tanggal untuk rekap satu hari tertentu; kosongkan tanggal untuk rekap sebulan penuh.</p>' +
     '<div class="form-inline"><label>Kelas<select id="rekap-kelas">' + opsiKelas(_kelasCache.length ? _kelasCache : [], true) + '</select></label>' +
     '<label>Bulan<input id="rekap-bulan" type="month" value="' + bulanDefault + '"></label>' +
+    '<label>Tanggal<input id="rekap-tanggal" type="date"></label>' +
     '<button class="tombol kecil" id="btn-rekap">Tampilkan</button>' +
     '<button class="tombol kecil" id="btn-rekap-csv">Unduh CSV</button></div>' +
     '<div id="hasil-rekap"><p class="muat">Memuat…</p></div>' +
@@ -1099,14 +1101,18 @@ HAL.guru.kehadiran = async function () {
   var muatRekap = async function () {
     var target = $('hasil-rekap');
     target.innerHTML = '<p class="muat">Memuat rekap…</p>';
+    var tanggal = $('rekap-tanggal').value || undefined;
     var res = await api('rekapKehadiran', guruPayload({
       kelas: $('rekap-kelas').value || undefined,
-      bulan: $('rekap-bulan').value
+      bulan: $('rekap-bulan').value,
+      tanggal: tanggal
     }));
     if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
     var r = res.data;
     var persen = r.persenHadir === null ? '—' : r.persenHadir + '%';
+    var cakupan = tanggal ? 'Rekap tanggal ' + tanggal : 'Rekap bulan ' + $('rekap-bulan').value;
     target.innerHTML =
+      '<p class="muted">' + esc(cakupan) + ' — ' + r.total + ' baris.</p>' +
       '<div class="stat-grid">' +
       kartuStat(r.total, 'Total (siswa × hari)') +
       kartuStat(r.jumlah.Hadir, 'Hadir') +
@@ -1120,12 +1126,18 @@ HAL.guru.kehadiran = async function () {
   };
 
   $('btn-rekap').addEventListener('click', muatRekap);
+  $('rekap-tanggal').addEventListener('change', function () {
+    if (this.value) $('rekap-bulan').value = this.value.slice(0, 7);
+  });
   $('btn-rekap-csv').addEventListener('click', function () {
     var r = $('hasil-rekap')._rekap;
     if (!r) { toast('Tampilkan rekap dulu.'); return; }
     var kelas = $('rekap-kelas').value || 'semua-kelas';
-    var bulan = $('rekap-bulan').value;
-    unduhTeks('rekap-kehadiran-' + kelas.replace(/\s+/g, '-') + '-' + bulan + '.csv', csvDariRekap(r), 'text/csv; charset=utf-8');
+    var tanggal = $('rekap-tanggal').value;
+    var namaBerkas = tanggal
+      ? 'rekap-kehadiran-' + kelas.replace(/\s+/g, '-') + '-' + tanggal + '.csv'
+      : 'rekap-kehadiran-' + kelas.replace(/\s+/g, '-') + '-' + $('rekap-bulan').value + '.csv';
+    unduhTeks(namaBerkas, csvDariRekap(r), 'text/csv; charset=utf-8');
   });
 
   $('btn-sinkron').addEventListener('click', async function () {
@@ -1180,13 +1192,18 @@ HAL.guru.kehadiran = async function () {
 HAL.siswa.kehadiran = async function () {
   var el = $('hal-siswa-kehadiran');
   el.innerHTML = '<h2>Kehadiran Saya</h2>' +
+    '<p class="muted">Isi tanggal untuk melihat satu hari tertentu; kosongkan untuk sebulan penuh.</p>' +
     '<div class="form-inline"><label>Bulan<input id="rekap-siswa-bulan" type="month" value="' + bulanBerjalan() + '"></label>' +
+    '<label>Tanggal<input id="rekap-siswa-tanggal" type="date"></label>' +
     '<button class="tombol kecil" id="btn-rekap-siswa">Tampilkan</button></div>' +
     '<div id="hasil-rekap-siswa"><p class="muat">Memuat…</p></div>';
   var muat = async function () {
     var target = $('hasil-rekap-siswa');
     target.innerHTML = '<p class="muat">Memuat…</p>';
-    var res = await api('rekapKehadiran', siswaPayload({ bulan: $('rekap-siswa-bulan').value }));
+    var res = await api('rekapKehadiran', siswaPayload({
+      bulan: $('rekap-siswa-bulan').value,
+      tanggal: $('rekap-siswa-tanggal').value || undefined
+    }));
     if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
     var r = res.data;
     var persen = r.persenHadir === null ? '—' : r.persenHadir + '%';
@@ -1202,6 +1219,9 @@ HAL.siswa.kehadiran = async function () {
       '</div>' + tabelKehadiran(r.baris);
   };
   $('btn-rekap-siswa').addEventListener('click', muat);
+  $('rekap-siswa-tanggal').addEventListener('change', function () {
+    if (this.value) $('rekap-siswa-bulan').value = this.value.slice(0, 7);
+  });
   muat();
 };
 
