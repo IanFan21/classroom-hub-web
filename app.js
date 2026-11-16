@@ -416,10 +416,24 @@ HAL.guru.kelas = async function () {
     '<label>Nama<input name="nama" required minlength="2" maxlength="100"></label>' +
     '<label>Kelas<select name="kelas" required>' + opsiKelas(_kelasCache, false) + '</select></label>' +
     '<label>Email (opsional)<input name="email" type="email"></label>' +
+    '<label>Jenis kelamin<select name="jenis_kelamin"><option value="">—</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></label>' +
+    '<label><input name="pintar" type="checkbox"> Siswa pintar</label>' +
     '<button type="submit" class="tombol utama">Tambah Siswa</button>' +
     '</form><p id="error-siswa-tambah" class="error" hidden></p>' +
+    '<div id="panel-edit-siswa" hidden><h3>Edit Siswa</h3>' +
+    '<form id="form-edit-siswa" class="form-inline">' +
+    '<input type="hidden" name="id_siswa">' +
+    '<label>Nama<input name="nama" required minlength="2" maxlength="100"></label>' +
+    '<label>Kelas<select name="kelas" required>' + opsiKelas(_kelasCache, false) + '</select></label>' +
+    '<label>Email (opsional)<input name="email" type="email"></label>' +
+    '<label>Jenis kelamin<select name="jenis_kelamin"><option value="">—</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></label>' +
+    '<label><input name="pintar" type="checkbox"> Siswa pintar</label>' +
+    '<label>Status<select name="status_aktif"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></label>' +
+    '<button type="submit" class="tombol utama">Simpan Perubahan</button> ' +
+    '<button type="button" class="tombol" id="btn-batal-edit">Batal</button>' +
+    '</form><p id="error-siswa-edit" class="error" hidden></p></div>' +
     '<h3>Impor Siswa (CSV)</h3>' +
-    '<p class="muted">File CSV dengan kolom Nama, Kelas, Email (Email opsional). Baris meragukan masuk daftar Verifikasi, bukan ke data siswa. File .xlsx dikonversi ke CSV dulu (mis. lewat spreadsheet).</p>' +
+    '<p class="muted">File CSV dengan kolom Nama, Kelas, Email (opsional), Pintar (opsional: Ya/Tidak), Jenis_Kelamin (opsional: L/P). Baris meragukan masuk daftar Verifikasi, bukan ke data siswa. File .xlsx dikonversi ke CSV dulu (mis. lewat spreadsheet).</p>' +
     '<input type="file" id="file-impor-siswa" accept=".csv,text/csv">' +
     '<button class="tombol" id="btn-impor-siswa">Impor</button>' +
     '<div id="hasil-impor"></div>';
@@ -453,11 +467,13 @@ HAL.guru.kelas = async function () {
     var res = await api('listSiswa', guruPayload(kelasFilter ? { kelas: kelasFilter } : {}));
     if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
     var daftar = res.data;
-    var t = '<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas</th><th>Email</th><th>Status</th><th>PIN</th><th></th></tr>';
+    var t = '<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas</th><th>Email</th><th>Status</th><th>Jenis Kelamin</th><th>Pintar</th><th>PIN</th><th></th></tr>';
     daftar.forEach(function (s) {
       t += '<tr><td>' + esc(s.nama) + '</td><td>' + esc(s.kelas) + '</td><td>' + esc(s.email) + '</td><td>' + esc(s.status_aktif) + '</td>' +
+        '<td>' + esc(labelJK(s.jenis_kelamin)) + '</td><td>' + badgePintar(s.pintar) + '</td>' +
         '<td><button class="tombol kecil" data-buat-pin="' + esc(s.id_siswa) + '" data-nama="' + esc(s.nama) + '">Buat PIN</button> <span id="pin-' + esc(s.id_siswa) + '"></span></td>' +
-        '<td><button class="tombol kecil bahaya" data-hapus-siswa="' + esc(s.id_siswa) + '" data-nama="' + esc(s.nama) + '">Hapus</button></td></tr>';
+        '<td><button class="tombol kecil" data-edit-siswa="' + esc(s.id_siswa) + '">Edit</button> ' +
+        '<button class="tombol kecil bahaya" data-hapus-siswa="' + esc(s.id_siswa) + '" data-nama="' + esc(s.nama) + '">Hapus</button></td></tr>';
     });
     t += '</table></div><p class="muted">Total: ' + daftar.length + ' siswa. PIN hanya tampil sekali — sampaikan ke siswa, lalu simpan di tempat aman.</p>';
     target.innerHTML = t;
@@ -478,6 +494,26 @@ HAL.guru.kelas = async function () {
         muatSiswa($('filter-siswa-kelas').value);
       });
     });
+    target.querySelectorAll('[data-edit-siswa]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-edit-siswa');
+        var s = null;
+        for (var i = 0; i < daftar.length; i++) {
+          if (daftar[i].id_siswa === id) { s = daftar[i]; break; }
+        }
+        if (!s) return;
+        var f = $('form-edit-siswa');
+        f.id_siswa.value = s.id_siswa;
+        f.nama.value = s.nama;
+        f.kelas.value = s.kelas;
+        f.email.value = s.email || '';
+        f.jenis_kelamin.value = s.jenis_kelamin || '';
+        f.pintar.checked = !!s.pintar;
+        f.status_aktif.value = s.status_aktif || 'Aktif';
+        $('panel-edit-siswa').hidden = false;
+        $('panel-edit-siswa').scrollIntoView();
+      });
+    });
   };
 
   $('btn-muat-siswa').addEventListener('click', function () { muatSiswa($('filter-siswa-kelas').value); });
@@ -487,11 +523,30 @@ HAL.guru.kelas = async function () {
     ev.preventDefault();
     var fd = new FormData(ev.target);
     var res = await api('tambahSiswa', guruPayload({
-      nama: fd.get('nama'), kelas: fd.get('kelas'), email: fd.get('email')
+      nama: fd.get('nama'), kelas: fd.get('kelas'), email: fd.get('email'),
+      jenis_kelamin: fd.get('jenis_kelamin') || '', pintar: fd.get('pintar') === 'on'
     }));
     if (!res.ok) { tunjukError('error-siswa-tambah', res.error); return; }
     toast('Siswa ditambahkan.');
     HAL.guru.kelas();
+  });
+
+  $('form-edit-siswa').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    tunjukError('error-siswa-edit', null);
+    var fd = new FormData(ev.target);
+    var res = await api('editSiswa', guruPayload({
+      id_siswa: fd.get('id_siswa'), nama: fd.get('nama'), kelas: fd.get('kelas'),
+      email: fd.get('email'), status_aktif: fd.get('status_aktif'),
+      jenis_kelamin: fd.get('jenis_kelamin') || '', pintar: fd.get('pintar') === 'on'
+    }));
+    if (!res.ok) { tunjukError('error-siswa-edit', res.error); return; }
+    toast('Data siswa diperbarui.');
+    HAL.guru.kelas();
+  });
+
+  $('btn-batal-edit').addEventListener('click', function () {
+    $('panel-edit-siswa').hidden = true;
   });
 
   $('btn-impor-siswa').addEventListener('click', async function () {
@@ -504,9 +559,19 @@ HAL.guru.kelas = async function () {
     var iNama = header.indexOf('nama');
     var iKelas = header.indexOf('kelas');
     var iEmail = header.indexOf('email');
+    var iPintar = header.indexOf('pintar');
+    var iJk = header.indexOf('jenis_kelamin');
+    if (iJk === -1) iJk = header.indexOf('jenis kelamin');
+    if (iJk === -1) iJk = header.indexOf('jk');
     if (iNama === -1 || iKelas === -1) { toast('Header harus punya kolom Nama dan Kelas.'); return; }
     var data = rows.slice(1).map(function (r) {
-      return { nama: (r[iNama] || '').trim(), kelas: (r[iKelas] || '').trim(), email: iEmail === -1 ? '' : (r[iEmail] || '').trim() };
+      var pintarRaw = iPintar === -1 ? '' : (r[iPintar] || '').trim().toLowerCase();
+      return {
+        nama: (r[iNama] || '').trim(), kelas: (r[iKelas] || '').trim(),
+        email: iEmail === -1 ? '' : (r[iEmail] || '').trim(),
+        pintar: pintarRaw === 'ya' || pintarRaw === '1' || pintarRaw === 'true',
+        jenis_kelamin: iJk === -1 ? '' : (r[iJk] || '').trim()
+      };
     }).filter(function (r) { return r.nama || r.kelas; });
     var hasil = { diimpor: 0, dilewatiDuplikat: 0, masukVerifikasi: [], diimporNama: [] };
     var target = $('hasil-impor');
@@ -691,6 +756,18 @@ function badgeStatus(status) {
   else if (status === 'Terlambat') cls = 'merah';
   else if (status === 'Perlu revisi') cls = 'kuning';
   return '<span class="badge ' + cls + '">' + esc(status) + '</span>';
+}
+
+/** Label jenis kelamin: 'L' -> Laki-laki, 'P' -> Perempuan, else '—'. */
+function labelJK(jk) {
+  if (jk === 'L') return 'Laki-laki';
+  if (jk === 'P') return 'Perempuan';
+  return '—';
+}
+
+/** Badge penanda siswa pintar (kosong kalau bukan). */
+function badgePintar(pintar) {
+  return pintar ? '<span class="badge kuning">★ Pintar</span>' : '—';
 }
 
 HAL.guru.tugas = async function () {
@@ -1202,8 +1279,9 @@ function tabelKelompok(list, petaNama) {
 HAL.guru.kelompok = async function () {
   var el = $('hal-guru-kelompok');
   el.innerHTML = '<h2>Kelompok</h2>' +
-    '<p class="muted">Heterogen = skor dicampur (snake draft); homogen = skor selevel; acak = Fisher-Yates; manual = guru yang memilih anggota. Penomoran kelompok berlanjut dari yang sudah ada. Alasan pembentukan disimpan transparan (rata skor + komposisi).</p>' +
+    '<p class="muted">Heterogen = skor dicampur + gender (L/P) dan siswa pintar disebar rata ke tiap kelompok; homogen = skor selevel + gender diseimbangkan (tukar dengan selisih skor terkecil); acak = diacak tapi tetap seimbang gender/pintar; manual = guru yang memilih anggota. Penomoran kelompok berlanjut dari yang sudah ada. Alasan pembentukan disimpan transparan (rata skor + komposisi, termasuk hitungan L/P dan pintar).</p>' +
     '<h3>Generate Kelompok</h3>' +
+    '<div id="info-komposisi-kelas" class="muted"></div>' +
     '<form id="form-generate" class="form-inline">' +
     '<label>Kelas<select name="kelas" required>' + opsiKelas(_kelasCache.length ? _kelasCache : [], false) + '</select></label>' +
     '<label>Mode<select name="mode"><option value="heterogen">Heterogen</option><option value="homogen">Homogen</option><option value="acak">Acak</option></select></label>' +
@@ -1246,12 +1324,34 @@ HAL.guru.kelompok = async function () {
     res.data.forEach(function (s) {
       var o = document.createElement('option');
       o.value = s.id_siswa;
-      o.textContent = s.nama;
+      var ket = [];
+      if (s.jenis_kelamin === 'L' || s.jenis_kelamin === 'P') ket.push(s.jenis_kelamin);
+      if (s.pintar) ket.push('Pintar');
+      o.textContent = s.nama + (ket.length ? ' (' + ket.join(' • ') + ')' : '');
       sel.appendChild(o);
     });
   };
   $('manual-kelas').addEventListener('change', muatAnggotaManual);
   muatAnggotaManual();
+
+  var muatInfoKomposisi = async function () {
+    var kelas = el.querySelector('#form-generate select[name="kelas"]').value;
+    var target = $('info-komposisi-kelas');
+    if (!kelas) { target.textContent = ''; return; }
+    var res = await api('listSiswa', guruPayload({ kelas: kelas }));
+    if (!res.ok) { target.textContent = ''; return; }
+    var jL = 0, jP = 0, jTdk = 0, jPintar = 0;
+    res.data.forEach(function (s) {
+      if (s.jenis_kelamin === 'L') jL++;
+      else if (s.jenis_kelamin === 'P') jP++;
+      else jTdk++;
+      if (s.pintar) jPintar++;
+    });
+    target.textContent = 'Kelas ' + kelas + ': ' + res.data.length + ' siswa — Laki-laki ' + jL + ', Perempuan ' + jP +
+      (jTdk ? ', belum isi jenis kelamin ' + jTdk : '') + ', pintar ' + jPintar + '.';
+  };
+  el.querySelector('#form-generate select[name="kelas"]').addEventListener('change', muatInfoKomposisi);
+  muatInfoKomposisi();
 
   $('form-generate').addEventListener('submit', async function (ev) {
     ev.preventDefault();

@@ -29,9 +29,10 @@ secret — hanya HTML + CSS + JavaScript biasa.
 
 - Pintu depan (kode akses) → pilih peran → login guru (kode) /
   login siswa (kelas → nama → PIN).
-- Guru: Dashboard, Kelas & Siswa (tambah/hapus, buat PIN, impor CSV),
-  Materi, Tugas (nilai 0–100 / revisi), Kehadiran (rekap, sinkron
-  Absensi QR, input manual), Kompetensi, Kelompok, Laporan
+- Guru: Dashboard, Kelas & Siswa (tambah/edit/hapus, buat PIN, impor CSV
+  — kolom Pintar dan Jenis_Kelamin opsional), Materi, Tugas (nilai 0–100 / revisi), Kehadiran (rekap, sinkron
+  Absensi QR, input manual), Kompetensi, Kelompok (heterogen/homogen/acak
+  menyeimbangkan gender L/P dan siswa pintar; manual), Laporan
   (pratinjau + unduh CSV/XLSX/PDF + simpan ke Drive), Verifikasi, Atur.
 - Siswa: Dashboard, Materi, Tugas (kumpul tautan/file), Kehadiran,
   Kompetensi, Kelompok, Laporan (hanya datanya sendiri).
