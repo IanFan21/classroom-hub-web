@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classroom Hub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="kepala">
+    <h1>Classroom Hub</h1>
+    <p class="sub">Manajemen kelas — Guru &amp; Siswa</p>
+  </header>
+
+  <div id="peringatan-url" class="peringatan" hidden>
+    APPS_SCRIPT_URL belum diisi di <code>app.js</code>. Isi dengan URL Web App
+    Apps Script (/exec) supaya aplikasi bisa terhubung ke database.
+  </div>
+
+  <main id="app">
+    <!-- Pintu depan: kode akses (dicek di server) -->
+    <section id="layar-kode" class="kartu">
+      <h2>Masuk</h2>
+      <p>Masukkan kode akses yang diberikan guru.</p>
+      <form id="form-kode">
+        <label>Kode akses
+          <input type="password" id="input-kode" autocomplete="off" required>
+        </label>
+        <button type="submit" class="tombol utama">Buka</button>
+      </form>
+      <p id="error-kode" class="error" hidden></p>
+    </section>
+
+    <!-- Pilih peran -->
+    <section id="layar-peran" class="kartu" hidden>
+      <h2>Anda masuk sebagai?</h2>
+      <div class="baris-tombol">
+        <button id="btn-peran-guru" class="tombol utama">Guru</button>
+        <button id="btn-peran-siswa" class="tombol">Siswa</button>
+      </div>
+      <p><button id="btn-keluar-peran" class="tautan">Kunci kembali</button></p>
+    </section>
+
+    <!-- Login guru -->
+    <section id="layar-guru" class="kartu" hidden>
+      <h2>Login Guru</h2>
+      <form id="form-guru">
+        <label>Kode guru
+          <input type="password" id="input-kode-guru" autocomplete="off" required>
+        </label>
+        <button type="submit" class="tombol utama">Masuk sebagai Guru</button>
+      </form>
+      <p id="error-guru" class="error" hidden></p>
+      <p><button id="btn-kembali-guru" class="tautan">← Kembali pilih peran</button></p>
+    </section>
+
+    <!-- Login siswa: kelas -> nama -> PIN -->
+    <section id="layar-siswa" class="kartu" hidden>
+      <h2>Login Siswa</h2>
+      <form id="form-siswa">
+        <label>Kelas
+          <select id="pilih-kelas-siswa" required>
+            <option value="">— Pilih kelas —</option>
+          </select>
+        </label>
+        <label>Nama
+          <select id="pilih-nama-siswa" required disabled>
+            <option value="">— Pilih nama —</option>
+          </select>
+        </label>
+        <label>PIN
+          <input type="password" id="input-pin-siswa" inputmode="numeric" autocomplete="off" required>
+        </label>
+        <button type="submit" class="tombol utama">Masuk sebagai Siswa</button>
+      </form>
+      <p id="error-siswa" class="error" hidden></p>
+      <p><button id="btn-kembali-siswa" class="tautan">← Kembali pilih peran</button></p>
+    </section>
+
+    <!-- Aplikasi guru -->
+    <section id="layar-guru-app" hidden>
+      <nav class="nav" id="nav-guru">
+        <button data-hal="dashboard" class="aktif">Dashboard</button>
+        <button data-hal="kelas">Kelas &amp; Siswa</button>
+        <button data-hal="materi">Materi</button>
+        <button data-hal="tugas">Tugas</button>
+        <button data-hal="kehadiran">Kehadiran</button>
+        <button data-hal="kompetensi">Kompetensi</button>
+        <button data-hal="kelompok">Kelompok</button>
+        <button data-hal="laporan">Laporan</button>
+        <button data-hal="verifikasi">Verifikasi</button>
+        <button data-hal="atur">Atur</button>
+        <button id="btn-keluar-guru" class="keluar">Keluar</button>
+      </nav>
+      <div id="hal-guru-dashboard" class="hal"></div>
+      <div id="hal-guru-kelas" class="hal" hidden></div>
+      <div id="hal-guru-materi" class="hal" hidden></div>
+      <div id="hal-guru-tugas" class="hal" hidden></div>
+      <div id="hal-guru-kehadiran" class="hal" hidden></div>
+      <div id="hal-guru-kompetensi" class="hal" hidden></div>
+      <div id="hal-guru-kelompok" class="hal" hidden></div>
+      <div id="hal-guru-laporan" class="hal" hidden></div>
+      <div id="hal-guru-verifikasi" class="hal" hidden></div>
+      <div id="hal-guru-atur" class="hal" hidden></div>
+    </section>
+
+    <!-- Aplikasi siswa -->
+    <section id="layar-siswa-app" hidden>
+      <nav class="nav" id="nav-siswa">
+        <button data-hal="dashboard" class="aktif">Dashboard</button>
+        <button data-hal="materi">Materi</button>
+        <button data-hal="tugas">Tugas</button>
+        <button data-hal="kehadiran">Kehadiran</button>
+        <button data-hal="kompetensi">Kompetensi</button>
+        <button data-hal="kelompok">Kelompok</button>
+        <button data-hal="laporan">Laporan</button>
+        <button id="btn-keluar-siswa" class="keluar">Keluar</button>
+      </nav>
+      <div id="hal-siswa-dashboard" class="hal"></div>
+      <div id="hal-siswa-materi" class="hal" hidden></div>
+      <div id="hal-siswa-tugas" class="hal" hidden></div>
+      <div id="hal-siswa-kehadiran" class="hal" hidden></div>
+      <div id="hal-siswa-kompetensi" class="hal" hidden></div>
+      <div id="hal-siswa-kelompok" class="hal" hidden></div>
+      <div id="hal-siswa-laporan" class="hal" hidden></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

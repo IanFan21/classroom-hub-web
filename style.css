@@ -1,0 +1,207 @@
+/* Classroom Hub — gaya sederhana, ramah HP. Tanpa framework. */
+:root {
+  --utama: #1a5fb4;
+  --utama-gelap: #144a8a;
+  --latar: #f4f6f8;
+  --kartu: #ffffff;
+  --teks: #1c2333;
+  --teks-redup: #5b6472;
+  --garis: #d9dee6;
+  --error: #b3261e;
+  --sukses: #137333;
+  --kuning: #8a6d00;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--latar);
+  color: var(--teks);
+  line-height: 1.5;
+}
+
+.kepala {
+  background: var(--utama);
+  color: #fff;
+  padding: 18px 16px;
+}
+.kepala h1 { margin: 0; font-size: 1.4rem; }
+.kepala .sub { margin: 2px 0 0; opacity: 0.85; font-size: 0.9rem; }
+
+main { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+.kartu {
+  background: var(--kartu);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 520px;
+  margin: 24px auto;
+}
+.kartu h2 { margin-top: 0; }
+
+.peringatan {
+  max-width: 960px;
+  margin: 12px auto 0;
+  padding: 12px 16px;
+  background: #fff3cd;
+  border: 1px solid #e6c87a;
+  color: var(--kuning);
+  border-radius: var(--radius);
+}
+
+label { display: block; margin: 12px 0; font-weight: 600; font-size: 0.92rem; }
+input, select, textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px 10px;
+  font: inherit;
+  border: 1px solid var(--garis);
+  border-radius: 8px;
+  background: #fff;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--utama);
+  outline-offset: 0;
+  border-color: var(--utama);
+}
+
+.tombol {
+  display: inline-block;
+  padding: 9px 16px;
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--garis);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--teks);
+  cursor: pointer;
+}
+.tombol:hover { background: #eef2f7; }
+.tombol.utama { background: var(--utama); border-color: var(--utama); color: #fff; }
+.tombol.utama:hover { background: var(--utama-gelap); }
+.tombol.kecil { padding: 5px 10px; font-size: 0.85rem; }
+.tombol.bahaya { border-color: var(--error); color: var(--error); }
+.tombol:disabled { opacity: 0.55; cursor: default; }
+
+.tautan {
+  background: none;
+  border: none;
+  color: var(--utama);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.baris-tombol { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+
+.error { color: var(--error); font-weight: 600; }
+.muted { color: var(--teks-redup); font-size: 0.9rem; }
+.sukses-teks { color: var(--sukses); font-weight: 600; }
+
+/* Navigasi */
+.nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.nav button {
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  border: 1px solid var(--garis);
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+}
+.nav button.aktif { background: var(--utama); border-color: var(--utama); color: #fff; }
+.nav button.keluar { margin-left: auto; border-color: var(--error); color: var(--error); }
+
+.hal {
+  background: var(--kartu);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.hal h2 { margin-top: 0; }
+.hal h3 { margin-bottom: 6px; }
+
+/* Kartu statistik */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+.stat {
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: #fafbfc;
+}
+.stat .angka { font-size: 1.6rem; font-weight: 700; }
+.stat .label { color: var(--teks-redup); font-size: 0.88rem; }
+
+/* Tabel */
+.tabel-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+th, td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--garis);
+  vertical-align: top;
+}
+th { background: #f0f3f7; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #e8eef7;
+  color: #174a7c;
+}
+.badge.hijau { background: #e0f2e4; color: var(--sukses); }
+.badge.merah { background: #fbe4e2; color: var(--error); }
+.badge.kuning { background: #fff3cd; color: var(--kuning); }
+
+.form-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.form-inline label { margin: 0; }
+.form-inline input, .form-inline select { width: auto; min-width: 140px; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  background: #1c2333;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.93rem;
+  max-width: 90vw;
+  z-index: 50;
+}
+
+.muat { color: var(--teks-redup); }
+details { margin: 10px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+
+@media (max-width: 600px) {
+  main { padding: 10px; }
+  .kartu { margin: 12px auto; padding: 16px; }
+  .hal { padding: 14px; }
+  .nav button.keluar { margin-left: 0; }
+}
