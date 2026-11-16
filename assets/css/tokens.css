@@ -1,0 +1,37 @@
+/* Token desain — tema sekolah, HANYA 3 warna:
+   1) Biru tua (identitas, tombol, navigasi)
+   2) Emas (aksen: tombol utama di atas biru, penanda aktif, sorotan)
+   3) Putih/netral (latar, kartu, teks)
+   Warna lain hanya turunan (tint/shade) dari ketiganya. Satu-satunya pengecualian
+   adalah merah tegas untuk pesan error dan tombol hapus, demi keamanan pengguna. */
+:root {
+  /* 1. Biru tua */
+  --biru: #17356b;
+  --biru-gelap: #0f2650;
+  --biru-muda: #e8edf6;      /* tint biru untuk latar ringan */
+  --biru-garis: #cdd6e6;
+
+  /* 2. Emas */
+  --emas: #f2b01e;
+  --emas-gelap: #d99a0b;
+  --emas-muda: #fdf3d6;
+
+  /* 3. Putih / netral */
+  --putih: #ffffff;
+  --latar: #f6f7fa;
+  --teks: #14213d;
+  --teks-redup: #5a6580;
+
+  /* Alias dipakai komponen */
+  --utama: var(--biru);
+  --utama-gelap: var(--biru-gelap);
+  --kartu: var(--putih);
+  --garis: var(--biru-garis);
+  --sukses: var(--biru);
+  --error: #b3261e;          /* pengecualian: peringatan & hapus */
+
+  --radius: 12px;
+  --radius-kecil: 8px;
+  --bayangan: 0 1px 2px rgba(15, 38, 80, .06), 0 4px 14px rgba(15, 38, 80, .06);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

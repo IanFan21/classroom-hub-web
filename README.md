@@ -5,7 +5,7 @@ secret — hanya HTML + CSS + JavaScript biasa.
 
 ## Cara pakai
 
-1. Isi `APPS_SCRIPT_URL` di `app.js` dengan URL Web App Apps Script
+1. Isi `APPS_SCRIPT_URL` di `assets/js/core/config.js` dengan URL Web App Apps Script
    (berakhiran `/exec`).
 2. Push repo ini ke GitHub (publik) dan aktifkan GitHub Pages
    (Settings → Pages → Deploy from branch → `main` → `/ (root)`).
@@ -44,3 +44,30 @@ secret — hanya HTML + CSS + JavaScript biasa.
   pratinjau JSON.
 - File maksimal 25 MB (PDF, DOCX, PPTX, PNG/JPG/GIF/WebP).
 - Sesi guru berlaku 6 jam (CacheService); sesudah itu login ulang.
+
+## Struktur folder
+
+```
+index.html
+assets/
+  css/
+    tokens.css      warna & ukuran (tema sekolah: biru tua, emas, putih)
+    base.css        reset, tipografi, fokus
+    layout.css      kepala, navigasi, kartu, halaman, toast, responsif
+    komponen.css    form, tombol, kartu statistik, tabel, badge
+  js/
+    core/           config (URL Apps Script), util, api (JSONP), sesi
+    pages/          satu file per layar: auth, dashboard, kelas, materi,
+                    tugas, kehadiran, kompetensi, kelompok, laporan,
+                    verifikasi, atur
+    main.js         titik masuk (dimuat paling akhir)
+```
+
+Urutan `<script>` di `index.html` penting: `core/*` dulu, lalu `pages/*`,
+terakhir `main.js`. Semua berkas memakai skrip biasa (tanpa build).
+
+## Tema
+
+Hanya tiga warna: **biru tua** (identitas), **emas** (aksen), **putih/netral**
+(latar dan teks). Ubah di `assets/css/tokens.css`. Satu-satunya warna di luar
+itu adalah merah untuk pesan error dan tombol hapus.

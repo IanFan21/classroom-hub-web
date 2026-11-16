@@ -1,0 +1,26 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--latar);
+  color: var(--teks);
+  line-height: 1.55;
+}
+
+main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 48px; }
+
+h1, h2, h3 { color: var(--biru); line-height: 1.25; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; margin-bottom: 6px; }
+code { background: var(--biru-muda); padding: 1px 6px; border-radius: 4px; }
+
+.error { color: var(--error); font-weight: 600; }
+.muted { color: var(--teks-redup); font-size: .9rem; }
+.sukses-teks { color: var(--biru); font-weight: 600; }
+.muat { color: var(--teks-redup); }
+
+details { margin: 10px 0; }
+details summary { cursor: pointer; font-weight: 600; color: var(--biru); }
+
+:focus-visible { outline: 3px solid var(--emas); outline-offset: 2px; }
