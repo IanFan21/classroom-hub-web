@@ -436,7 +436,12 @@ HAL.guru.kelas = async function () {
     '<p class="muted">File CSV dengan kolom Nama, Kelas, Email (opsional), Pintar (opsional: Ya/Tidak), Jenis_Kelamin (opsional: L/P). Baris meragukan masuk daftar Verifikasi, bukan ke data siswa. File .xlsx dikonversi ke CSV dulu (mis. lewat spreadsheet).</p>' +
     '<input type="file" id="file-impor-siswa" accept=".csv,text/csv">' +
     '<button class="tombol" id="btn-impor-siswa">Impor</button>' +
-    '<div id="hasil-impor"></div>';
+    '<div id="hasil-impor"></div>' +
+    '<h3>Hapus Massal (Lulus)</h3>' +
+    '<p class="muted">Untuk kelas yang sudah lulus: hapus SEKALIGUS semua siswa di kelas itu. Hanya data siswa di tab Siswa yang dihapus — riwayat kehadiran, kompetensi, dan pengumpulan tetap tersimpan. <strong>Tidak bisa dibatalkan.</strong></p>' +
+    '<div class="form-inline"><label>Kelas<select id="hapus-massal-kelas">' + opsiKelas(_kelasCache, false) + '</select></label>' +
+    '<button class="tombol bahaya" id="btn-hapus-massal">Hapus Semua Siswa Kelas Ini</button></div>' +
+    '<p id="info-hapus-massal" class="muted"></p>';
 
   el.innerHTML = html;
 
@@ -594,6 +599,31 @@ HAL.guru.kelas = async function () {
     }
     target.innerHTML = h;
     muatSiswa($('filter-siswa-kelas').value);
+  });
+
+  var muatInfoHapusMassal = async function () {
+    var kelas = $('hapus-massal-kelas').value;
+    var target = $('info-hapus-massal');
+    if (!kelas) { target.textContent = ''; return; }
+    target.textContent = 'Menghitung…';
+    var res = await api('listSiswa', guruPayload({ kelas: kelas }));
+    if (!res.ok) { target.textContent = ''; return; }
+    target.textContent = 'Kelas ' + kelas + ': ' + res.data.length + ' siswa akan dihapus.';
+    target.dataset.jumlah = String(res.data.length);
+  };
+  $('hapus-massal-kelas').addEventListener('change', muatInfoHapusMassal);
+
+  $('btn-hapus-massal').addEventListener('click', async function () {
+    var kelas = $('hapus-massal-kelas').value;
+    if (!kelas) { toast('Pilih kelas dulu.'); return; }
+    var jumlah = $('info-hapus-massal').dataset.jumlah;
+    if (jumlah === undefined) { await muatInfoHapusMassal(); jumlah = $('info-hapus-massal').dataset.jumlah; }
+    if (!jumlah || Number(jumlah) === 0) { toast('Tidak ada siswa di kelas "' + kelas + '".'); return; }
+    if (!confirm('Hapus ' + jumlah + ' siswa kelas "' + kelas + '" SEKALIGUS?\n\nHanya data siswa kelas ini yang dihapus. Riwayat kehadiran, kompetensi, dan pengumpulan tetap tersimpan. Tindakan ini TIDAK BISA DIBATALKAN.')) return;
+    var res = await api('hapusSiswaMassal', guruPayload({ kelas: kelas }));
+    if (!res.ok) { toast(res.error); return; }
+    toast(res.data.dihapus + ' siswa kelas "' + res.data.kelas + '" dihapus.');
+    HAL.guru.kelas();
   });
 
   muatSiswa('');
