@@ -177,7 +177,7 @@ function tunjukHal(peran, nama) {
 
 /* ---------- Auth ---------- */
 
-function initAuth() {
+async function initAuth() {
   if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('GANTI_') === 0) {
     $('peringatan-url').hidden = false;
   }
@@ -188,6 +188,7 @@ function initAuth() {
     var kode = $('input-kode').value.trim();
     var res = await api('cekKodeAkses', { kode: kode });
     if (!res.ok) { tunjukError('error-kode', res.error); return; }
+    if (!res.data.terbuka) { tunjukError('error-kode', 'Kode akses salah.'); return; }
     Sesi.aksesTerbuka = true;
     tunjukLayar('layar-peran');
   });
@@ -249,6 +250,14 @@ function initAuth() {
   if (Sesi.guruToken) { masukGuru(); return; }
   if (Sesi.siswa) { masukSiswa(); return; }
   if (Sesi.aksesTerbuka) { tunjukLayar('layar-peran'); return; }
+  // Kalau pintu depan belum diaktifkan guru (KODE_AKSES kosong),
+  // lewati layar kode langsung ke pilih peran.
+  var cek = await api('cekKodeAkses', { kode: '' });
+  if (cek.ok && cek.data.terbuka && cek.data.perluKode === false) {
+    Sesi.aksesTerbuka = true;
+    tunjukLayar('layar-peran');
+    return;
+  }
   tunjukLayar('layar-kode');
 }
 
@@ -1465,12 +1474,18 @@ HAL.guru.atur = async function () {
   var el = $('hal-guru-atur');
   el.innerHTML = '<h2>Pengaturan</h2>' +
     '<h3>Ganti Kode Guru</h3>' +
-    '<p class="muted">Kode ini dipakai untuk pintu depan DAN login guru. Minimal 4 karakter. Setelah diganti, login ulang dengan kode baru.</p>' +
+    '<p class="muted">Kode guru HANYA untuk login guru — rahasia, jangan pernah dibagikan ke siswa. Minimal 4 karakter. Setelah diganti, login ulang dengan kode baru.</p>' +
     '<form id="form-ganti-kode" class="form-inline">' +
     '<label>Kode lama<input name="kodeLama" type="password" required></label>' +
     '<label>Kode baru<input name="kodeBaru" type="password" required minlength="4"></label>' +
     '<button type="submit" class="tombol utama">Ganti Kode</button>' +
     '</form><p id="error-ganti-kode" class="error" hidden></p>' +
+    '<h3>Kode Akses (Pintu Depan)</h3>' +
+    '<p class="muted">Kode ini yang dibagikan ke siswa untuk masuk ke situs. HARUS beda dari kode guru (server menolak kalau sama). Kosongkan untuk menonaktifkan pintu depan.</p>' +
+    '<form id="form-ganti-kode-akses" class="form-inline">' +
+    '<label>Kode akses baru<input name="kodeBaru" type="text" minlength="4" placeholder="kosongkan = nonaktifkan"></label>' +
+    '<button type="submit" class="tombol utama">Simpan Kode Akses</button>' +
+    '</form><p id="error-ganti-kode-akses" class="error" hidden></p>' +
     '<h3>Reset PIN Siswa Satu Kelas</h3>' +
     '<p class="muted">Membuat PIN 6 digit baru untuk SEMUA siswa di kelas itu. PIN ditampilkan SEKALI di bawah — sampaikan ke masing-masing siswa.</p>' +
     '<div class="form-inline"><label>Kelas<select id="reset-pin-kelas">' + opsiKelas(_kelasCache.length ? _kelasCache : [], false) + '</select></label>' +
@@ -1499,6 +1514,15 @@ HAL.guru.atur = async function () {
     toast('Kode guru diganti. Silakan login ulang dengan kode baru.');
     Sesi.guruToken = null;
     tunjukLayar('layar-guru');
+  });
+
+  $('form-ganti-kode-akses').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    tunjukError('error-ganti-kode-akses', null);
+    var fd = new FormData(ev.target);
+    var res = await api('gantiKodeAkses', guruPayload({ kodeBaru: fd.get('kodeBaru') }));
+    if (!res.ok) { tunjukError('error-ganti-kode-akses', res.error); return; }
+    toast(res.data.aktif ? 'Kode akses pintu depan disimpan.' : 'Pintu depan dinonaktifkan.');
   });
 
   $('btn-reset-pin').addEventListener('click', async function () {

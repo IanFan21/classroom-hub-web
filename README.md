@@ -19,9 +19,11 @@ secret — hanya HTML + CSS + JavaScript biasa.
   upload dulu, lalu verifikasi dengan aksi baca).
 - Sesi disimpan di `sessionStorage` (hilang saat tab ditutup):
   kode akses pintu depan, token guru, dan `{idSiswa, pin}` siswa.
-- Tidak ada secret di repo ini. Kode guru dicek di server (Script
-  Properties `GURU_KODE`); PIN siswa dicek di server (kolom `Token`
-  tab Siswa).
+- Tidak ada secret di repo ini. Dua kode dicek di server (Script
+  Properties): `GURU_KODE` (login guru saja — rahasia, jangan pernah
+  dibagikan ke siswa) dan `KODE_AKSES` (pintu depan, dibagikan ke
+  siswa; diatur guru dari halaman Atur, harus beda dari kode guru).
+  PIN siswa dicek di server (kolom `Token` tab Siswa).
 
 ## Layar
 
