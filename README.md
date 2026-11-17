@@ -3,6 +3,12 @@
 Frontend statis untuk Classroom Hub. Tanpa build, tanpa server, tanpa
 secret — hanya HTML + CSS + JavaScript biasa.
 
+**Struktur:** `index.html` + `app.js` (logika, root) + `assets/css/`
+(tema 3 warna: `tokens.css`, `base.css`, `layout.css`,
+`komponen.css`) + `assets/js/` (modul JS per halaman — SAAT INI TIDAK
+DIMUAT; logika live ada di `app.js` root). `style.css` di root sudah
+tidak dipakai lagi — jangan di-push kembali.
+
 ## Cara pakai
 
 1. Isi `APPS_SCRIPT_URL` di `app.js` dengan URL Web App Apps Script
