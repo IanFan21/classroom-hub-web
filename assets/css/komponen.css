@@ -102,3 +102,22 @@ tbody tr:hover td, table tr:hover td { background: var(--emas-muda); }
 
 .stat-grid.tiga { grid-template-columns: repeat(2, 1fr); }
 @media (min-width: 700px) { .stat-grid.tiga { grid-template-columns: repeat(3, 1fr); } }
+
+/* Pilih peran: dua kotak besar */
+#layar-peran { max-width: 640px; }
+.pilih-peran { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0 8px; }
+.peran-kotak {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  padding: 26px 16px 22px; font: inherit; color: var(--teks); background: var(--putih);
+  border: 2px solid var(--garis); border-radius: var(--radius); cursor: pointer;
+  transition: border-color .15s, background .15s, transform .12s, box-shadow .15s;
+}
+.peran-kotak strong { font-size: 1.2rem; color: var(--biru); }
+.peran-ikon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; background: var(--emas-muda); color: var(--biru); margin-bottom: 4px; }
+.peran-ikon .ik { width: 32px; height: 32px; }
+.peran-ket { font-size: .88rem; color: var(--teks-redup); line-height: 1.4; }
+.peran-kotak:hover { border-color: var(--emas); background: var(--emas-muda); transform: translateY(-2px); box-shadow: var(--bayangan); }
+.peran-kotak:hover .peran-ikon { background: var(--emas); }
+.peran-kotak:active { transform: none; }
+.tengah { text-align: center; }
+@media (max-width: 480px) { .pilih-peran { grid-template-columns: 1fr; } .peran-kotak { padding: 20px 16px; } }

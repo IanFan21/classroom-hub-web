@@ -48,11 +48,20 @@
     <!-- Pilih peran -->
     <section id="layar-peran" class="kartu" hidden>
       <h2><span data-ikon="orang"></span>Anda masuk sebagai?</h2>
-      <div class="baris-tombol">
-        <button id="btn-peran-guru" class="tombol utama peran"><span data-ikon="guru"></span>Guru</button>
-        <button id="btn-peran-siswa" class="tombol peran"><span data-ikon="siswa"></span>Siswa</button>
+      <p class="muted">Pilih sesuai peran Anda di kelas.</p>
+      <div class="pilih-peran">
+        <button id="btn-peran-guru" class="peran-kotak" type="button">
+          <span class="peran-ikon" data-ikon="guru"></span>
+          <strong>Guru</strong>
+          <span class="peran-ket">Kelola kelas, tugas, nilai, dan kehadiran</span>
+        </button>
+        <button id="btn-peran-siswa" class="peran-kotak" type="button">
+          <span class="peran-ikon" data-ikon="siswa"></span>
+          <strong>Siswa</strong>
+          <span class="peran-ket">Lihat materi, kumpulkan tugas, cek nilai</span>
+        </button>
       </div>
-      <p><button id="btn-keluar-peran" class="tautan">Kunci kembali</button></p>
+      <p class="tengah"><button id="btn-keluar-peran" class="tautan">Kunci kembali</button></p>
     </section>
 
     <!-- Login guru -->
