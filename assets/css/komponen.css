@@ -208,3 +208,16 @@ input[type="checkbox"], input[type="radio"] {
 
 /* Form sebaris: beri napas lebih lega antar kolom (sebelumnya 8px, terlalu mepet). */
 .form-inline { gap: 12px; }
+
+/* HP: kontrol form tidak boleh meluber keluar layar — teks panjang
+   (mis. nama tugas + rentang tanggal di Penilaian) sebelumnya membuat
+   select lebih lebar dari kartu, sehingga tampilannya terpotong.
+   Label boleh menyusut, kontrol dibatasi selebar wadahnya, dan teks
+   yang kepanjangan terpotong rapi (…); saat dropdown dibuka, teks
+   lengkapnya tetap terlihat. */
+.form-inline label { min-width: 0; max-width: 100%; }
+.form-inline select, .form-inline input { max-width: 100%; }
+@media (max-width: 720px) {
+  .form-inline label { flex: 1 1 100%; }
+  .form-inline select, .form-inline input:not([type="checkbox"]):not([type="radio"]) { width: 100%; }
+}
