@@ -74,20 +74,19 @@ HAL.guru.penilaian = async function () {
     var peta = {};
     rp.data.forEach(function (p) { peta[p.id_siswa] = p; });
     var siswa = rs.data.filter(function (s) { return s.status_aktif !== 'Nonaktif'; });
-    if (!siswa.length) { target.innerHTML = '<p class="muted">Belum ada siswa aktif di kelas ini.</p>'; return; }
+    if (!siswa.length) { target.innerHTML = kosongHtml('kelas', 'Belum ada siswa aktif di kelas ini', 'Tambahkan siswa di menu Kelas & Siswa.'); return; }
     var h = '<div class="form-inline"><button type="button" class="tombol kecil" id="btn-pilih-semua">Pilih semua</button>' +
       '<button type="button" class="tombol kecil" id="btn-pilih-terisi">Pilih yang terisi nilai</button>' +
       '<button type="button" class="tombol kecil" id="btn-bersihkan-pilihan">Bersihkan pilihan</button>' +
       '<button type="button" class="tombol utama" id="btn-simpan-dipilih" disabled>Simpan nilai yang dipilih (0)</button></div>' +
       '<div id="hasil-simpan-massal"></div>' +
-      '<div class="tabel-wrap"><table><tr><th><input type="checkbox" id="pilih-semua-nilai" title="Pilih semua"></th><th>Siswa</th><th>Status</th><th>Nilai saat ini</th><th>Nilai / Feedback</th></tr>';
+      '<div class="tabel-wrap"><table class="tabel-nilai"><tr><th><input type="checkbox" id="pilih-semua-nilai" title="Pilih semua"> Siswa</th><th>Status</th><th>Nilai saat ini</th><th>Nilai / Feedback</th></tr>';
     siswa.forEach(function (s) {
       var cur = peta[s.id_siswa];
       var status = cur ? cur.status : 'Belum dinilai';
       var nilaiTxt = esc(labelNilai(cur && cur.nilai !== null ? cur.nilai : null));
       if (cur && cur.jenis === 'langsung') nilaiTxt += ' <span class="muted">(langsung)</span>';
-      h += '<tr><td><input type="checkbox" class="pilih-nilai" data-id-siswa="' + esc(s.id_siswa) + '"></td>' +
-        '<td>' + esc(s.nama) + '</td><td>' + badgeStatus(status) + '</td><td>' + nilaiTxt + '</td>' +
+      h += '<tr><td><input type="checkbox" class="pilih-nilai" data-id-siswa="' + esc(s.id_siswa) + '"> ' + esc(s.nama) + '</td><td>' + badgeStatus(status) + '</td><td>' + nilaiTxt + '</td>' +
         '<td><form class="form-inline" data-form-nilai-langsung="' + esc(s.id_siswa) + '">' +
         '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (cur && cur.nilai !== null ? esc(cur.nilai) : '') + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
         '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
