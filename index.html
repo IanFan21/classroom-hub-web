@@ -4,27 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Classroom Hub</title>
-  <meta name="theme-color" content="#17356b">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
-  <link rel="stylesheet" href="assets/css/komponen.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="kepala">
-    <div class="kepala-isi">
-      <span class="kepala-lambang" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
-      </span>
-      <div>
-        <h1>Classroom Hub</h1>
-        <p class="sub">Manajemen kelas — Guru &amp; Siswa</p>
-      </div>
-    </div>
+    <h1>Classroom Hub</h1>
+    <p class="sub">Manajemen kelas — Guru &amp; Siswa</p>
   </header>
 
   <div id="peringatan-url" class="peringatan" hidden>
-    APPS_SCRIPT_URL belum diisi di <code>assets/js/core/config.js</code>. Isi dengan URL Web App
+    APPS_SCRIPT_URL belum diisi di <code>app.js</code>. Isi dengan URL Web App
     Apps Script (/exec) supaya aplikasi bisa terhubung ke database.
   </div>
 
@@ -95,6 +84,7 @@
         <button data-hal="kelas">Kelas &amp; Siswa</button>
         <button data-hal="materi">Materi</button>
         <button data-hal="tugas">Tugas</button>
+        <button data-hal="penilaian">Penilaian</button>
         <button data-hal="kehadiran">Kehadiran</button>
         <button data-hal="kompetensi">Kompetensi</button>
         <button data-hal="kelompok">Kelompok</button>
@@ -107,6 +97,7 @@
       <div id="hal-guru-kelas" class="hal" hidden></div>
       <div id="hal-guru-materi" class="hal" hidden></div>
       <div id="hal-guru-tugas" class="hal" hidden></div>
+      <div id="hal-guru-penilaian" class="hal" hidden></div>
       <div id="hal-guru-kehadiran" class="hal" hidden></div>
       <div id="hal-guru-kompetensi" class="hal" hidden></div>
       <div id="hal-guru-kelompok" class="hal" hidden></div>
@@ -138,21 +129,6 @@
   </main>
 
   <div id="toast" class="toast" hidden></div>
-  <script src="assets/js/core/config.js"></script>
-  <script src="assets/js/core/util.js"></script>
-  <script src="assets/js/core/api.js"></script>
-  <script src="assets/js/core/sesi.js"></script>
-  <script src="assets/js/pages/auth.js"></script>
-  <script src="assets/js/pages/dashboard.js"></script>
-  <script src="assets/js/pages/kelas.js"></script>
-  <script src="assets/js/pages/materi.js"></script>
-  <script src="assets/js/pages/tugas.js"></script>
-  <script src="assets/js/pages/kehadiran.js"></script>
-  <script src="assets/js/pages/kompetensi.js"></script>
-  <script src="assets/js/pages/kelompok.js"></script>
-  <script src="assets/js/pages/laporan.js"></script>
-  <script src="assets/js/pages/verifikasi.js"></script>
-  <script src="assets/js/pages/atur.js"></script>
-  <script src="assets/js/main.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
