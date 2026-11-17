@@ -75,7 +75,7 @@ HAL.guru.penilaian = async function () {
     rp.data.forEach(function (p) { peta[p.id_siswa] = p; });
     var siswa = rs.data.filter(function (s) { return s.status_aktif !== 'Nonaktif'; });
     if (!siswa.length) { target.innerHTML = kosongHtml('kelas', 'Belum ada siswa aktif di kelas ini', 'Tambahkan siswa di menu Kelas & Siswa.'); return; }
-    var h = '<div class="tabel-wrap"><table><tr><th>Siswa</th><th>Status</th><th>Nilai saat ini</th><th>Nilai / Feedback</th></tr>';
+    var h = '<div class="tabel-wrap"><table class="tabel-nilai"><tr><th>Siswa</th><th>Status</th><th>Nilai saat ini</th><th>Nilai / Feedback</th></tr>';
     siswa.forEach(function (s) {
       var cur = peta[s.id_siswa];
       var status = cur ? cur.status : 'Belum dinilai';

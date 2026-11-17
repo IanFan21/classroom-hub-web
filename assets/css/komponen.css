@@ -121,3 +121,30 @@ tbody tr:hover td, table tr:hover td { background: var(--emas-muda); }
 .peran-kotak:active { transform: none; }
 .tengah { text-align: center; }
 @media (max-width: 480px) { .pilih-peran { grid-template-columns: 1fr; } .peran-kotak { padding: 20px 16px; } }
+
+/* Tabel penilaian: satu baris per siswa, kolom isian rapat */
+.tabel-nilai td { vertical-align: middle; padding: 8px 10px; }
+.tabel-nilai th { padding: 9px 10px; }
+.tabel-nilai td:first-child { min-width: 150px; font-weight: 600; }
+.tabel-nilai .badge { white-space: nowrap; }
+.tabel-nilai form { display: grid; grid-template-columns: 76px 100px minmax(90px, 1fr) auto; gap: 8px; align-items: end; min-width: 0; }
+.tabel-nilai label { margin: 0; font-size: .78rem; font-weight: 600; color: var(--teks-redup); min-width: 0; }
+.tabel-nilai input, .tabel-nilai select { width: 100% !important; min-width: 0; min-height: 38px; padding: 6px 9px; font-size: .92rem; margin-top: 2px; }
+.tabel-nilai .huruf-nilai { font-weight: 700; color: var(--biru); }
+.tabel-nilai .tombol { white-space: nowrap; min-height: 38px; }
+
+/* HP: tiap siswa jadi satu kartu, tanpa geser samping */
+@media (max-width: 720px) {
+  .tabel-nilai, .tabel-nilai tbody { display: block; }
+  .tabel-nilai tr:first-child { display: none; }
+  .tabel-nilai tr { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 12px; border-bottom: 1px solid var(--garis); }
+  .tabel-nilai tr:last-child { border-bottom: 0; }
+  .tabel-nilai td { display: block; padding: 2px 0; border: 0; background: transparent !important; }
+  .tabel-nilai td:first-child { min-width: 0; font-size: 1rem; }
+  .tabel-nilai td:nth-child(3) { grid-column: 1 / -1; font-size: .88rem; color: var(--teks-redup); }
+  .tabel-nilai td:nth-child(3)::before { content: "Nilai saat ini: "; }
+  .tabel-nilai td:nth-child(4) { grid-column: 1 / -1; margin-top: 8px; }
+  .tabel-nilai form { grid-template-columns: 1fr 1fr; }
+  .tabel-nilai label:nth-child(3), .tabel-nilai .tombol { grid-column: 1 / -1; }
+  .tabel-nilai .tombol { min-height: 42px; }
+}
