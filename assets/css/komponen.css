@@ -129,7 +129,7 @@ tbody tr:hover td, table tr:hover td { background: var(--emas-muda); }
 .tabel-nilai .badge { white-space: nowrap; }
 .tabel-nilai form { display: grid; grid-template-columns: 76px 100px minmax(90px, 1fr) auto; gap: 8px; align-items: end; min-width: 0; }
 .tabel-nilai label { margin: 0; font-size: .78rem; font-weight: 600; color: var(--teks-redup); min-width: 0; }
-.tabel-nilai input, .tabel-nilai select { width: 100% !important; min-width: 0; min-height: 38px; padding: 6px 9px; font-size: .92rem; margin-top: 2px; }
+.tabel-nilai input:not([type="checkbox"]), .tabel-nilai select { width: 100% !important; min-width: 0; min-height: 38px; padding: 6px 9px; font-size: .92rem; margin-top: 2px; }
 .tabel-nilai .huruf-nilai { font-weight: 700; color: var(--biru); }
 .tabel-nilai .tombol { white-space: nowrap; min-height: 38px; }
 
@@ -147,4 +147,34 @@ tbody tr:hover td, table tr:hover td { background: var(--emas-muda); }
   .tabel-nilai form { grid-template-columns: 1fr 1fr; }
   .tabel-nilai label:nth-child(3), .tabel-nilai .tombol { grid-column: 1 / -1; }
   .tabel-nilai .tombol { min-height: 42px; }
+}
+
+/* Checkbox & radio: ukuran wajar, bukan kotak penuh */
+input[type="checkbox"], input[type="radio"] {
+  display: inline-block; width: 18px; height: 18px; min-height: 0; margin: 0 8px 0 0; padding: 0;
+  vertical-align: middle; accent-color: var(--biru); cursor: pointer; flex: none;
+}
+label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { display: inline-flex; align-items: center; font-weight: 600; cursor: pointer; }
+
+/* Penilaian: bilah aksi massal */
+#daftar-nilai > .form-inline {
+  align-items: center; gap: 8px; padding: 10px 12px; margin-bottom: 10px;
+  background: var(--biru-muda); border: 1px solid var(--garis); border-radius: var(--radius-kecil);
+}
+#daftar-nilai > .form-inline .tombol { min-height: 38px; }
+#btn-simpan-dipilih { margin-left: auto; }
+#btn-simpan-dipilih:disabled { background: var(--biru-garis); border-color: var(--biru-garis); color: var(--biru-gelap); opacity: .8; }
+@media (max-width: 720px) {
+  #btn-simpan-dipilih { margin-left: 0; width: 100%; }
+}
+
+/* Penilaian: centang di sisi kiri nama siswa */
+.tabel-nilai th:first-child, .tabel-nilai td:first-child { position: relative; padding-left: 38px; }
+.tabel-nilai th:first-child input, .tabel-nilai td:first-child input[type="checkbox"] {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%); margin: 0;
+}
+.tabel-nilai th:first-child input { accent-color: var(--emas); }
+@media (max-width: 720px) {
+  .tabel-nilai td:first-child { padding-left: 30px; }
+  .tabel-nilai td:first-child input[type="checkbox"] { left: 0; }
 }
