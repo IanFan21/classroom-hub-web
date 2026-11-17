@@ -74,21 +74,84 @@ HAL.guru.penilaian = async function () {
     var peta = {};
     rp.data.forEach(function (p) { peta[p.id_siswa] = p; });
     var siswa = rs.data.filter(function (s) { return s.status_aktif !== 'Nonaktif'; });
-    if (!siswa.length) { target.innerHTML = kosongHtml('kelas', 'Belum ada siswa aktif di kelas ini', 'Tambahkan siswa di menu Kelas & Siswa.'); return; }
-    var h = '<div class="tabel-wrap"><table class="tabel-nilai"><tr><th>Siswa</th><th>Status</th><th>Nilai saat ini</th><th>Nilai / Feedback</th></tr>';
+    if (!siswa.length) { target.innerHTML = '<p class="muted">Belum ada siswa aktif di kelas ini.</p>'; return; }
+    var h = '<div class="form-inline"><button type="button" class="tombol kecil" id="btn-pilih-semua">Pilih semua</button>' +
+      '<button type="button" class="tombol kecil" id="btn-pilih-terisi">Pilih yang terisi nilai</button>' +
+      '<button type="button" class="tombol kecil" id="btn-bersihkan-pilihan">Bersihkan pilihan</button>' +
+      '<button type="button" class="tombol utama" id="btn-simpan-dipilih" disabled>Simpan nilai yang dipilih (0)</button></div>' +
+      '<div id="hasil-simpan-massal"></div>' +
+      '<div class="tabel-wrap"><table><tr><th><input type="checkbox" id="pilih-semua-nilai" title="Pilih semua"></th><th>Siswa</th><th>Status</th><th>Nilai saat ini</th><th>Nilai / Feedback</th></tr>';
     siswa.forEach(function (s) {
       var cur = peta[s.id_siswa];
       var status = cur ? cur.status : 'Belum dinilai';
       var nilaiTxt = esc(labelNilai(cur && cur.nilai !== null ? cur.nilai : null));
       if (cur && cur.jenis === 'langsung') nilaiTxt += ' <span class="muted">(langsung)</span>';
-      h += '<tr><td>' + esc(s.nama) + '</td><td>' + badgeStatus(status) + '</td><td>' + nilaiTxt + '</td>' +
+      h += '<tr><td><input type="checkbox" class="pilih-nilai" data-id-siswa="' + esc(s.id_siswa) + '"></td>' +
+        '<td>' + esc(s.nama) + '</td><td>' + badgeStatus(status) + '</td><td>' + nilaiTxt + '</td>' +
         '<td><form class="form-inline" data-form-nilai-langsung="' + esc(s.id_siswa) + '">' +
         '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (cur && cur.nilai !== null ? esc(cur.nilai) : '') + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
         '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
         '<label>Feedback<input name="feedback" value="' + esc(cur ? (cur.feedback || '') : '') + '"></label>' +
         '<button type="submit" class="tombol kecil utama">Simpan nilai</button></form></td></tr>';
     });
-    target.innerHTML = h + '</table></div><p class="muted">Menyimpan nilai langsung menimpa nilai sebelumnya untuk tugas ini (riwayat tersimpan). Nilai 0–100 — pilih huruf untuk mengisi angka tengah pitanya (A+ 99, A 95, A- 91, B+ 88, B 85, B- 81, C+ 78, C 75, C- 71, D+ 68, D 65, D- 61, E 30).</p>';
+    target.innerHTML = h + '</table></div><p class="muted">Centang siswa yang mau disimpan sekaligus, lalu klik "Simpan nilai yang dipilih" — satu kali kirim untuk semuanya. Menyimpan nilai langsung menimpa nilai sebelumnya untuk tugas ini (riwayat tersimpan). Nilai 0–100 — pilih huruf untuk mengisi angka tengah pitanya (A+ 99, A 95, A- 91, B+ 88, B 85, B- 81, C+ 78, C 75, C- 71, D+ 68, D 65, D- 61, E 30).</p>';
+    var perbaruiJumlahDipilih = function () {
+      var n = target.querySelectorAll('.pilih-nilai:checked').length;
+      var btn = $('btn-simpan-dipilih');
+      btn.textContent = 'Simpan nilai yang dipilih (' + n + ')';
+      btn.disabled = n === 0;
+      var semua = target.querySelectorAll('.pilih-nilai');
+      var master = $('pilih-semua-nilai');
+      if (master) master.checked = semua.length > 0 && n === semua.length;
+    };
+    var aturSemua = function (nyala) {
+      target.querySelectorAll('.pilih-nilai').forEach(function (cb) { cb.checked = nyala; });
+      perbaruiJumlahDipilih();
+    };
+    $('pilih-semua-nilai').addEventListener('change', function () { aturSemua(this.checked); });
+    target.querySelectorAll('.pilih-nilai').forEach(function (cb) {
+      cb.addEventListener('change', perbaruiJumlahDipilih);
+    });
+    $('btn-pilih-semua').addEventListener('click', function () { aturSemua(true); });
+    $('btn-pilih-terisi').addEventListener('click', function () {
+      target.querySelectorAll('.pilih-nilai').forEach(function (cb) {
+        var f = cb.closest('tr').querySelector('form[data-form-nilai-langsung]');
+        cb.checked = !!f && f.querySelector('input[name="nilai"]').value.trim() !== '';
+      });
+      perbaruiJumlahDipilih();
+    });
+    $('btn-bersihkan-pilihan').addEventListener('click', function () { aturSemua(false); });
+    $('btn-simpan-dipilih').addEventListener('click', async function () {
+      var btn = this;
+      var daftar = [];
+      var kosong = 0;
+      target.querySelectorAll('.pilih-nilai:checked').forEach(function (cb) {
+        var f = cb.closest('tr').querySelector('form[data-form-nilai-langsung]');
+        if (!f) return;
+        var fd = new FormData(f);
+        var nilai = String(fd.get('nilai') || '').trim();
+        if (nilai === '') { kosong++; return; }
+        daftar.push({
+          id_siswa: cb.getAttribute('data-id-siswa'),
+          nilai: Number(nilai),
+          feedback: fd.get('feedback')
+        });
+      });
+      if (!daftar.length) { toast(kosong ? 'Siswa yang dicentang belum diisi nilainya.' : 'Centang dulu siswa yang mau disimpan.'); return; }
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan…';
+      var res3 = await api('nilaiLangsungBanyak', guruPayload({ id_tugas: idTugas, nilai: daftar }));
+      if (!res3.ok) { toast(res3.error); btn.disabled = false; perbaruiJumlahDipilih(); return; }
+      var d = res3.data;
+      var pesan = d.disimpan + ' nilai disimpan.';
+      if (kosong) pesan += ' ' + kosong + ' dicentang tapi nilainya kosong (dilewati).';
+      if (d.gagal && d.gagal.length) {
+        pesan += ' Gagal: ' + d.gagal.map(function (g) { return (g.nama || g.id_siswa) + ' — ' + g.error; }).join('; ');
+      }
+      $('hasil-simpan-massal').innerHTML = '<p class="sukses-teks">' + esc(pesan) + '</p>';
+      toast(d.disimpan + ' nilai disimpan.');
+      muat();
+    });
     target.querySelectorAll('[data-form-nilai-langsung]').forEach(function (f) {
       pasangPilihHuruf(f);
       f.addEventListener('submit', async function (ev) {
