@@ -56,3 +56,7 @@ Skrip dimuat berurutan di akhir `index.html`; `dashboard.js`
   pratinjau JSON.
 - File maksimal 25 MB (PDF, DOCX, PPTX, PNG/JPG/GIF/WebP).
 - Sesi guru berlaku 6 jam (CacheService); sesudah itu login ulang.
+
+## Urutkan tabel
+
+Semua tabel otomatis bisa diurutkan: klik judul kolom (naik → turun → urutan awal). Kolom berisi isian atau tombol tidak ikut. Logikanya di `assets/js/core/urut.js`; di HP, tabel penilaian punya menu "Urutkan".

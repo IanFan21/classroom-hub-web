@@ -178,3 +178,17 @@ label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { display:
   .tabel-nilai td:first-child { padding-left: 30px; }
   .tabel-nilai td:first-child input[type="checkbox"] { left: 0; }
 }
+
+/* Judul kolom yang bisa diurutkan */
+th[data-urut-kolom] { cursor: pointer; user-select: none; position: relative; }
+th[data-urut-kolom]:hover { background: var(--biru-gelap); }
+th[data-urut-kolom]:focus-visible { outline-offset: -3px; }
+th[data-urut-kolom]::after { content: "↕"; margin-left: 6px; font-size: .8em; opacity: .45; }
+th[aria-sort="ascending"]::after { content: "▲"; opacity: 1; color: var(--emas); }
+th[aria-sort="descending"]::after { content: "▼"; opacity: 1; color: var(--emas); }
+th[data-urut-kolom] input[type="checkbox"] { margin-right: 6px; }
+
+/* Menu urutkan: hanya di HP untuk tabel berbentuk kartu */
+.urut-hp { display: none; align-items: center; gap: 8px; margin: 0 0 10px; font-size: .9rem; }
+.urut-hp select { width: auto; flex: 1; }
+@media (max-width: 720px) { .urut-hp { display: flex; } }
