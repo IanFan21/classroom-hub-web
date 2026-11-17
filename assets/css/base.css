@@ -1,5 +1,10 @@
 * { box-sizing: border-box; }
 
+/* Atribut hidden harus selalu menang — tema ini mengatur label/button
+   dengan display sendiri, yang tanpa aturan ini menimpa display:none
+   bawaan browser sehingga kolom yang seharusnya tersembunyi tetap muncul. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   font-family: var(--font);
