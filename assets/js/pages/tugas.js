@@ -148,10 +148,11 @@ async function lihatPengumpulanGuru(idTugas) {
     h += '<div class="tabel-wrap"><table><tr><th>Siswa</th><th>Status</th><th>Nilai</th><th>Waktu Kumpul</th><th>Tautan</th><th>Nilai / Feedback</th></tr>';
     list.forEach(function (p) {
       h += '<tr><td>' + esc(p.nama_siswa) + '</td><td>' + badgeStatus(p.status) + '</td>' +
-        '<td>' + (p.nilai === null ? '—' : esc(p.nilai)) + '</td><td>' + esc(p.waktu_kumpul) + '</td>' +
-        '<td><a href="' + esc(p.link_file) + '" target="_blank" rel="noopener">Buka</a></td>' +
+        '<td>' + esc(labelNilai(p.nilai)) + '</td><td>' + esc(p.waktu_kumpul) + '</td>' +
+        '<td>' + (p.link_file ? '<a href="' + esc(p.link_file) + '" target="_blank" rel="noopener">Buka</a>' : '—') + '</td>' +
         '<td><form class="form-inline" data-form-nilai="' + esc(p.id_pengumpulan) + '">' +
-        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (p.nilai === null ? '' : esc(p.nilai)) + '" style="width:70px"></label>' +
+        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (p.nilai === null ? '' : esc(p.nilai)) + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
+        '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
         '<label>Feedback<input name="feedback" value="' + esc(p.feedback || '') + '"></label>' +
         '<label>Status<select name="status"><option value="Sudah dinilai"' + (p.status === 'Sudah dinilai' ? ' selected' : '') + '>Sudah dinilai</option><option value="Perlu revisi"' + (p.status === 'Perlu revisi' ? ' selected' : '') + '>Perlu revisi</option></select></label>' +
         '<button type="submit" class="tombol kecil utama">Simpan nilai</button></form></td></tr>';
@@ -160,6 +161,7 @@ async function lihatPengumpulanGuru(idTugas) {
   }
   target.innerHTML = h;
   target.querySelectorAll('[data-form-nilai]').forEach(function (f) {
+    pasangPilihHuruf(f);
     f.addEventListener('submit', async function (ev) {
       ev.preventDefault();
       var fd = new FormData(f);
@@ -199,7 +201,7 @@ HAL.siswa.tugas = async function () {
     if (!sel) return;
     if (!r.ok || !r.data.pengumpulan.length) { sel.innerHTML = badgeStatus('Belum mengumpulkan'); return; }
     var p = r.data.pengumpulan[0];
-    sel.innerHTML = badgeStatus(p.status) + (p.nilai !== null ? ' · Nilai: ' + esc(p.nilai) : '') + (p.feedback ? '<br><span class="muted">' + esc(p.feedback) + '</span>' : '');
+    sel.innerHTML = badgeStatus(p.status) + (p.nilai !== null ? ' · Nilai: ' + esc(labelNilai(p.nilai)) : '') + (p.feedback ? '<br><span class="muted">' + esc(p.feedback) + '</span>' : '');
   });
 
   el.querySelectorAll('[data-kumpul]').forEach(function (b) {

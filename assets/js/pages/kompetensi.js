@@ -14,7 +14,7 @@ function tabelKompetensi(list) {
   list.forEach(function (k) {
     h += '<tr><td>' + esc(k.nama_siswa) + '</td><td>' + esc(k.kelas) + '</td>' +
       '<td>' + (k.skor === null ? '—' : esc(k.skor)) + '</td><td>' + badgeKategori(k.kategori) + '</td>' +
-      '<td>' + (k.rata_nilai === null ? '—' : esc(k.rata_nilai)) + '</td>' +
+      '<td>' + (k.rata_nilai === null ? '—' : esc(labelNilai(k.rata_nilai))) + '</td>' +
       '<td>' + esc(k.jumlah_tugas_dinilai) + '</td>' +
       '<td>' + (k.persen_hadir === null ? '—' : esc(k.persen_hadir) + '%') + '</td>' +
       '<td>' + esc(k.jumlah_hari) + '</td><td>' + esc(k.basis) + '</td><td>' + esc(k.dihitung_pada) + '</td></tr>';
