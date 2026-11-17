@@ -3,10 +3,16 @@
 HAL.guru.penilaian = async function () {
   var el = $('hal-guru-penilaian');
   el.innerHTML = '<h2>Penilaian</h2>' +
-    '<p class="muted">Nilai langsung tanpa pengumpulan — mis. nilai praktek di lab. Pilih kelas dan tugas/praktek, lalu isi nilai tiap siswa (angka 0–100 atau pilih huruf A+ s.d. E). Nilai di sini sama dengan nilai tugas biasa: langsung terhitung di Kompetensi. Buat tugas/praktek dulu di menu Tugas kalau belum ada.</p>' +
+    '<p class="muted">Nilai langsung tanpa pengumpulan — mis. nilai praktek di lab. Pilih kelas dan tugas/praktek, lalu isi nilai tiap siswa (angka 0–100 atau pilih huruf A+ s.d. E). Nilai di sini sama dengan nilai tugas biasa: langsung terhitung di Kompetensi. Kalau prakteknya belum ada, buat langsung dari form di bawah — tidak perlu pindah ke menu Tugas.</p>' +
     '<div class="form-inline"><label>Kelas<select id="nilai-kelas">' + opsiKelas(_kelasCache.length ? _kelasCache : [], false) + '</select></label>' +
     '<label>Tugas / Praktek<select id="nilai-tugas"></select></label>' +
     '<button class="tombol kecil" id="btn-muat-nilai">Tampilkan</button></div>' +
+    '<h3>Buat Praktek Baru</h3>' +
+    '<form id="form-buat-praktek" class="form-inline">' +
+    '<label>Judul praktek<input name="judul" required minlength="2" maxlength="150" placeholder="mis. Praktek Crimping Kabel UTP"></label>' +
+    '<label>Tanggal<input name="tenggat" type="date" required value="' + hariIni() + '"></label>' +
+    '<button type="submit" class="tombol utama">Buat praktek</button>' +
+    '</form><p id="error-praktek" class="error" hidden></p>' +
     '<div id="daftar-nilai"></div>';
 
   if (!_kelasCache.length) {
@@ -34,6 +40,23 @@ HAL.guru.penilaian = async function () {
   };
   $('nilai-kelas').addEventListener('change', muatTugas);
   await muatTugas();
+
+  $('form-buat-praktek').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    tunjukError('error-praktek', null);
+    var fd = new FormData(ev.target);
+    var res = await api('tambahTugas', guruPayload({
+      judul: fd.get('judul'), deskripsi: '',
+      kelas: $('nilai-kelas').value, tenggat: fd.get('tenggat')
+    }));
+    if (!res.ok) { tunjukError('error-praktek', res.error); return; }
+    toast('Praktek dibuat — silakan nilai.');
+    ev.target.reset();
+    ev.target.querySelector('input[name="tenggat"]').value = hariIni();
+    await muatTugas();
+    var baru = res.data && res.data.id_tugas;
+    if (baru) { $('nilai-tugas').value = baru; muat(); }
+  });
 
   var muat = async function () {
     var target = $('daftar-nilai');
