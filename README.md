@@ -42,7 +42,7 @@ Skrip dimuat berurutan di akhir `index.html`; `dashboard.js`
 - Pintu depan (kode akses) → pilih peran → login guru (kode) /
   login siswa (kelas → nama → PIN).
 - Guru: Dashboard, Kelas & Siswa (tambah/edit/hapus, buat PIN, impor CSV,
-  hapus massal kelas lulus — kolom Pintar dan Jenis_Kelamin opsional), Materi, Tugas (nilai 0–100 / revisi), Penilaian (nilai langsung tanpa pengumpulan — mis. praktek; angka 0–100 atau huruf A+ s.d. E; form Buat Praktek di halaman yang sama — judul + tanggal, langsung bisa dinilai), Kehadiran (rekap per tanggal atau sebulan, sinkron
+  hapus massal kelas lulus — kolom Pintar dan Jenis_Kelamin opsional), Materi, Tugas (tambah/edit/hapus, arsip; tanggal mulai opsional — tampil sebagai rentang "Mulai s.d. Tenggat"; nilai 0–100 / revisi), Penilaian (nilai langsung tanpa pengumpulan — mis. praktek; angka 0–100 atau huruf A+ s.d. E; form Buat Praktek di halaman yang sama — judul + Mulai–Sampai, langsung bisa dinilai), Kehadiran (rekap per tanggal atau sebulan, sinkron
   Absensi QR, input manual), Kompetensi, Kelompok (heterogen/homogen/acak
   menyeimbangkan gender L/P dan siswa pintar; manual), Laporan
   (pratinjau + unduh CSV/XLSX/PDF + simpan ke Drive), Verifikasi, Atur.
