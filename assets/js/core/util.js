@@ -31,3 +31,8 @@ function hariIni() {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+/** "2026-11-17 s.d. 2026-11-20" bila ada tanggal mulai, atau tanggal akhir saja. */
+function labelRentang(mulai, selesai) {
+  return mulai ? mulai + ' s.d. ' + selesai : selesai;
+}
+

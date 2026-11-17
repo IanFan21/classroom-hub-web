@@ -10,7 +10,8 @@ HAL.guru.penilaian = async function () {
     '<h3>Buat Praktek Baru</h3>' +
     '<form id="form-buat-praktek" class="form-inline">' +
     '<label>Judul praktek<input name="judul" required minlength="2" maxlength="150" placeholder="mis. Praktek Crimping Kabel UTP"></label>' +
-    '<label>Tanggal<input name="tenggat" type="date" required value="' + hariIni() + '"></label>' +
+    '<label>Mulai<input name="tanggal_mulai" type="date" value="' + hariIni() + '"></label>' +
+    '<label>Sampai<input name="tenggat" type="date" required value="' + hariIni() + '"></label>' +
     '<button type="submit" class="tombol utama">Buat praktek</button>' +
     '</form><p id="error-praktek" class="error" hidden></p>' +
     '<div id="daftar-nilai"></div>';
@@ -33,7 +34,7 @@ HAL.guru.penilaian = async function () {
     res.data.forEach(function (t) {
       var o = document.createElement('option');
       o.value = t.id_tugas;
-      o.textContent = t.judul + ' (tenggat ' + t.tenggat + ')';
+      o.textContent = t.judul + ' (' + labelRentang(t.tanggal_mulai, t.tenggat) + ')';
       sel.appendChild(o);
     });
     if (!res.data.length) toast('Belum ada tugas di kelas ini — buat dulu di menu Tugas.');
@@ -47,11 +48,13 @@ HAL.guru.penilaian = async function () {
     var fd = new FormData(ev.target);
     var res = await api('tambahTugas', guruPayload({
       judul: fd.get('judul'), deskripsi: '',
-      kelas: $('nilai-kelas').value, tenggat: fd.get('tenggat')
+      kelas: $('nilai-kelas').value, tenggat: fd.get('tenggat'),
+      tanggal_mulai: fd.get('tanggal_mulai') || ''
     }));
     if (!res.ok) { tunjukError('error-praktek', res.error); return; }
     toast('Praktek dibuat — silakan nilai.');
     ev.target.reset();
+    ev.target.querySelector('input[name="tanggal_mulai"]').value = hariIni();
     ev.target.querySelector('input[name="tenggat"]').value = hariIni();
     await muatTugas();
     var baru = res.data && res.data.id_tugas;

@@ -28,11 +28,13 @@ HAL.guru.tugas = async function () {
     '<label>Judul<input name="judul" required minlength="2" maxlength="150"></label>' +
     '<label>Deskripsi<textarea name="deskripsi" maxlength="1000"></textarea></label>' +
     '<div class="form-inline"><label>Kelas<select name="kelas" required>' + opsiKelas(_kelasCache.length ? _kelasCache : [], false) + '</select></label>' +
-    '<label>Tenggat<input name="tenggat" type="date" required></label></div>' +
-    '<label>Jenis lampiran<select id="jenis-tugas"><option value="">Tanpa lampiran</option><option value="tautan">Tautan</option><option value="file">File (PDF/DOCX/PPTX/gambar, maks 25 MB)</option></select></label>' +
+    '<label>Tenggat<input name="tenggat" type="date" required></label>' +
+    '<label>Tanggal mulai (opsional)<input name="tanggal_mulai" type="date"></label></div>' +
+    '<label id="label-jenis-tugas">Jenis lampiran<select id="jenis-tugas"><option value="">Tanpa lampiran</option><option value="tautan">Tautan</option><option value="file">File (PDF/DOCX/PPTX/gambar, maks 25 MB)</option></select></label>' +
     '<label id="label-url-tugas" hidden>URL tautan<input name="url" type="url" placeholder="https://…"></label>' +
     '<label id="label-file-tugas" hidden>File<input type="file" id="file-tugas"></label>' +
-    '<button type="submit" class="tombol utama">Tambah Tugas</button>' +
+    '<button type="submit" class="tombol utama" id="btn-simpan-tugas">Tambah Tugas</button> ' +
+    '<button type="button" class="tombol kecil" id="btn-batal-edit" hidden>Batal edit</button>' +
     '</form><p id="error-tugas" class="error" hidden></p>' +
     '<h3>Daftar Tugas</h3>' +
     '<div class="form-inline"><label>Kelas<select id="filter-tugas-kelas">' + opsiKelas(_kelasCache.length ? _kelasCache : [], true) + '</select></label>' +
@@ -57,14 +59,27 @@ HAL.guru.tugas = async function () {
     $('label-file-tugas').hidden = this.value !== 'file';
   });
 
+  $('btn-batal-edit').addEventListener('click', function () { HAL.guru.tugas(); });
+
   $('form-tambah-tugas').addEventListener('submit', async function (ev) {
     ev.preventDefault();
     tunjukError('error-tugas', null);
     var fd = new FormData(ev.target);
     var dasar = {
       judul: fd.get('judul'), deskripsi: fd.get('deskripsi') || '',
-      kelas: fd.get('kelas'), tenggat: fd.get('tenggat')
+      kelas: fd.get('kelas'), tenggat: fd.get('tenggat'),
+      tanggal_mulai: fd.get('tanggal_mulai') || ''
     };
+    var editId = ev.target.getAttribute('data-edit-tugas');
+    if (editId) {
+      // Mode edit: hanya teks (judul/deskripsi/kelas/tanggal) yang berubah;
+      // lampiran, tanggal dibuat, dan status arsip tetap.
+      var resE = await api('editTugas', guruPayload(Object.assign(dasar, { id_tugas: editId })));
+      if (!resE.ok) { tunjukError('error-tugas', resE.error); return; }
+      toast('Tugas diubah.');
+      HAL.guru.tugas();
+      return;
+    }
     var jenis = $('jenis-tugas').value;
     if (jenis === 'tautan') {
       var res = await api('tambahTugas', guruPayload(Object.assign(dasar, { url: fd.get('url') })));
@@ -99,11 +114,15 @@ HAL.guru.tugas = async function () {
     if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
     if (!res.data.length) { target.innerHTML = '<p class="muted">Belum ada tugas.</p>'; return; }
     var h = '<div class="tabel-wrap"><table><tr><th>Judul</th><th>Kelas</th><th>Tenggat</th><th>Lampiran</th><th></th></tr>';
+    var petaTugas = {};
     res.data.forEach(function (t) {
+      petaTugas[t.id_tugas] = t;
       h += '<tr><td>' + esc(t.judul) + (t.deskripsi ? '<br><span class="muted">' + esc(t.deskripsi) + '</span>' : '') + '</td>' +
-        '<td>' + esc(t.kelas) + '</td><td>' + esc(t.tenggat) + '</td>' +
+        '<td>' + esc(t.kelas) + '</td><td>' + esc(labelRentang(t.tanggal_mulai, t.tenggat)) + '</td>' +
         '<td>' + (t.link_lampiran ? '<a href="' + esc(t.link_lampiran) + '" target="_blank" rel="noopener">' + esc(t.jenis_lampiran || 'tautan') + '</a>' : '—') + '</td>' +
         '<td><button class="tombol kecil" data-lihat-tugas="' + esc(t.id_tugas) + '">Lihat pengumpulan</button> ' +
+        '<button class="tombol kecil" data-edit-tugas="' + esc(t.id_tugas) + '">Edit</button> ' +
+        '<button class="tombol kecil" data-hapus-tugas="' + esc(t.id_tugas) + '">Hapus</button> ' +
         (t.diarsipkan
           ? '<button class="tombol kecil" data-pulihkan-tugas="' + esc(t.id_tugas) + '">Pulihkan</button>'
           : '<button class="tombol kecil" data-arsip-tugas="' + esc(t.id_tugas) + '">Arsipkan</button>') + '</td></tr>';
@@ -111,6 +130,37 @@ HAL.guru.tugas = async function () {
     target.innerHTML = h + '</table></div>';
     target.querySelectorAll('[data-lihat-tugas]').forEach(function (b) {
       b.addEventListener('click', function () { lihatPengumpulanGuru(b.getAttribute('data-lihat-tugas')); });
+    });
+    target.querySelectorAll('[data-edit-tugas]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var t = petaTugas[b.getAttribute('data-edit-tugas')];
+        if (!t) return;
+        var f = $('form-tambah-tugas');
+        f.querySelector('input[name="judul"]').value = t.judul;
+        f.querySelector('textarea[name="deskripsi"]').value = t.deskripsi || '';
+        f.querySelector('select[name="kelas"]').value = t.kelas;
+        f.querySelector('input[name="tenggat"]').value = t.tenggat;
+        f.querySelector('input[name="tanggal_mulai"]').value = t.tanggal_mulai || '';
+        f.setAttribute('data-edit-tugas', t.id_tugas);
+        $('label-jenis-tugas').hidden = true;
+        $('label-url-tugas').hidden = true;
+        $('label-file-tugas').hidden = true;
+        $('btn-simpan-tugas').textContent = 'Simpan perubahan';
+        $('btn-batal-edit').hidden = false;
+        f.scrollIntoView();
+        toast('Mengubah tugas "' + t.judul + '" — lampiran tidak ikut berubah.');
+      });
+    });
+    target.querySelectorAll('[data-hapus-tugas]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var id = b.getAttribute('data-hapus-tugas');
+        var t = petaTugas[id];
+        if (!confirm('Hapus tugas "' + (t ? t.judul : id) + '"? Tugas yang sudah ada pengumpulan/nilai tidak bisa dihapus — arsipkan saja.')) return;
+        var r = await api('hapusTugas', guruPayload({ id_tugas: id }));
+        if (!r.ok) { toast(r.error); return; }
+        toast('Tugas dihapus.');
+        muat();
+      });
     });
     target.querySelectorAll('[data-arsip-tugas]').forEach(function (b) {
       b.addEventListener('click', async function () {
@@ -141,7 +191,7 @@ async function lihatPengumpulanGuru(idTugas) {
   if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
   var t = res.data.tugas;
   var list = res.data.pengumpulan || [];
-  var h = '<h3>Pengumpulan — ' + esc(t.judul) + ' (' + esc(t.kelas) + ', tenggat ' + esc(t.tenggat) + ')</h3>';
+  var h = '<h3>Pengumpulan — ' + esc(t.judul) + ' (' + esc(t.kelas) + ', ' + esc(labelRentang(t.tanggal_mulai, t.tenggat)) + ')</h3>';
   if (!list.length) {
     h += '<p class="muted">Belum ada yang mengumpulkan.</p>';
   } else {
@@ -187,7 +237,7 @@ HAL.siswa.tugas = async function () {
   var h = '<h2>Tugas Saya</h2><div class="tabel-wrap"><table><tr><th>Judul</th><th>Tenggat</th><th>Lampiran</th><th>Status Saya</th><th></th></tr>';
   res.data.forEach(function (t) {
     h += '<tr><td>' + esc(t.judul) + (t.deskripsi ? '<br><span class="muted">' + esc(t.deskripsi) + '</span>' : '') + '</td>' +
-      '<td>' + esc(t.tenggat) + '</td>' +
+      '<td>' + esc(labelRentang(t.tanggal_mulai, t.tenggat)) + '</td>' +
       '<td>' + (t.link_lampiran ? '<a href="' + esc(t.link_lampiran) + '" target="_blank" rel="noopener">' + esc(t.jenis_lampiran || 'tautan') + '</a>' : '—') + '</td>' +
       '<td id="status-' + esc(t.id_tugas) + '">…</td>' +
       '<td><button class="tombol kecil utama" data-kumpul="' + esc(t.id_tugas) + '">Kumpulkan</button></td></tr>';
