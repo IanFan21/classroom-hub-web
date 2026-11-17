@@ -1,7 +1,7 @@
 /* ---------- Materi ---------- */
 
 function tabelMateri(list, bisaArsip) {
-  if (!list.length) return '<p class="muted">Belum ada materi.</p>';
+  if (!list.length) return kosongHtml('materi', 'Belum ada materi', 'Materi yang diunggah akan muncul di sini.');
   var h = '<div class="tabel-wrap"><table><tr><th>Judul</th><th>Kelas</th><th>Topik</th><th>Jenis</th><th>Tautan</th><th>Dibuat</th>';
   if (bisaArsip) h += '<th></th>';
   h += '</tr>';

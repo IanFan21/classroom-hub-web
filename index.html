@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17356b">
+  <meta name="description" content="Classroom Hub: materi, tugas, penilaian, dan kehadiran kelas dalam satu tempat.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
   <title>Classroom Hub</title>
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -10,9 +15,10 @@
   <link rel="stylesheet" href="assets/css/komponen.css">
 </head>
 <body>
+  <a class="lompat" href="#app">Langsung ke konten</a>
   <header class="kepala">
     <div class="kepala-isi">
-      <div class="kepala-lambang">CH</div>
+      <div class="kepala-lambang" data-ikon="siswa"></div>
       <div>
         <h1>Classroom Hub</h1>
         <p class="sub">Manajemen kelas — Guru &amp; Siswa</p>
@@ -21,14 +27,14 @@
   </header>
 
   <div id="peringatan-url" class="peringatan" hidden>
-    APPS_SCRIPT_URL belum diisi di <code>app.js</code>. Isi dengan URL Web App
+    APPS_SCRIPT_URL belum diisi di <code>assets/js/core/config.js</code>. Isi dengan URL Web App
     Apps Script (/exec) supaya aplikasi bisa terhubung ke database.
   </div>
 
-  <main id="app">
+  <main id="app" tabindex="-1">
     <!-- Pintu depan: kode akses (dicek di server) -->
     <section id="layar-kode" class="kartu">
-      <h2>Masuk</h2>
+      <h2><span data-ikon="kunci"></span>Masuk</h2>
       <p>Masukkan kode akses yang diberikan guru.</p>
       <form id="form-kode">
         <label>Kode akses
@@ -41,17 +47,17 @@
 
     <!-- Pilih peran -->
     <section id="layar-peran" class="kartu" hidden>
-      <h2>Anda masuk sebagai?</h2>
+      <h2><span data-ikon="orang"></span>Anda masuk sebagai?</h2>
       <div class="baris-tombol">
-        <button id="btn-peran-guru" class="tombol utama">Guru</button>
-        <button id="btn-peran-siswa" class="tombol">Siswa</button>
+        <button id="btn-peran-guru" class="tombol utama peran"><span data-ikon="guru"></span>Guru</button>
+        <button id="btn-peran-siswa" class="tombol peran"><span data-ikon="siswa"></span>Siswa</button>
       </div>
       <p><button id="btn-keluar-peran" class="tautan">Kunci kembali</button></p>
     </section>
 
     <!-- Login guru -->
     <section id="layar-guru" class="kartu" hidden>
-      <h2>Login Guru</h2>
+      <h2><span data-ikon="guru"></span>Login Guru</h2>
       <form id="form-guru">
         <label>Kode guru
           <input type="password" id="input-kode-guru" autocomplete="off" required>
@@ -64,7 +70,7 @@
 
     <!-- Login siswa: kelas -> nama -> PIN -->
     <section id="layar-siswa" class="kartu" hidden>
-      <h2>Login Siswa</h2>
+      <h2><span data-ikon="siswa"></span>Login Siswa</h2>
       <form id="form-siswa">
         <label>Kelas
           <select id="pilih-kelas-siswa" required>
@@ -87,7 +93,7 @@
 
     <!-- Aplikasi guru -->
     <section id="layar-guru-app" hidden>
-      <nav class="nav" id="nav-guru">
+      <nav class="nav" id="nav-guru" aria-label="Menu guru">
         <button data-hal="dashboard" class="aktif">Dashboard</button>
         <button data-hal="kelas">Kelas &amp; Siswa</button>
         <button data-hal="materi">Materi</button>
@@ -116,7 +122,7 @@
 
     <!-- Aplikasi siswa -->
     <section id="layar-siswa-app" hidden>
-      <nav class="nav" id="nav-siswa">
+      <nav class="nav" id="nav-siswa" aria-label="Menu siswa">
         <button data-hal="dashboard" class="aktif">Dashboard</button>
         <button data-hal="materi">Materi</button>
         <button data-hal="tugas">Tugas</button>
@@ -134,11 +140,21 @@
       <div id="hal-siswa-kelompok" class="hal" hidden></div>
       <div id="hal-siswa-laporan" class="hal" hidden></div>
     </section>
+
+    <!-- Pengantar: tampil di layar masuk saja -->
+    <section class="sambutan" aria-label="Isi aplikasi">
+      <div class="fitur"><span data-ikon="materi"></span><div><strong>Materi</strong><p>Unduh bahan belajar kapan saja.</p></div></div>
+      <div class="fitur"><span data-ikon="tugas"></span><div><strong>Tugas</strong><p>Kumpulkan sebelum tenggat dan lihat nilainya.</p></div></div>
+      <div class="fitur"><span data-ikon="kehadiran"></span><div><strong>Kehadiran</strong><p>Pantau kehadiran dan perkembangan kompetensi.</p></div></div>
+    </section>
   </main>
 
-  <div id="toast" class="toast" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><p class="peringatan">Classroom Hub membutuhkan JavaScript. Aktifkan JavaScript di browser Anda.</p></noscript>
   <script src="assets/js/core/config.js"></script>
   <script src="assets/js/core/util.js"></script>
+  <script src="assets/js/core/ikon.js"></script>
+  <script src="assets/js/core/ui.js"></script>
   <script src="assets/js/core/sesi.js"></script>
   <script src="assets/js/core/api.js"></script>
   <script src="assets/js/core/nilai.js"></script>

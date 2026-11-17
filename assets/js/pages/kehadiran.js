@@ -1,7 +1,7 @@
 /* ---------- Kehadiran ---------- */
 
 function tabelKehadiran(baris) {
-  if (!baris.length) return '<p class="muted">Belum ada data kehadiran untuk filter ini.</p>';
+  if (!baris.length) return kosongHtml('kehadiran', 'Belum ada data kehadiran', 'Coba ubah tanggal atau kelas pada filter.');
   var h = '<div class="tabel-wrap"><table><tr><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Status</th><th>Jam</th><th>Sumber</th></tr>';
   baris.forEach(function (r) {
     h += '<tr><td>' + esc(r.tanggal) + '</td><td>' + esc(r.nama) + '</td><td>' + esc(r.kelas) + '</td><td>' + badgeStatus(r.status === 'Hadir' ? 'Sudah mengumpulkan' : r.status) + ' ' + esc(r.status) + '</td><td>' + esc(r.jam) + '</td><td>' + esc(r.sumber_file_id === 'MANUAL' ? 'Input manual' : 'Absensi QR') + '</td></tr>';

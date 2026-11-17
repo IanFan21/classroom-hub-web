@@ -29,3 +29,15 @@ details { margin: 10px 0; }
 details summary { cursor: pointer; font-weight: 600; color: var(--biru); }
 
 :focus-visible { outline: 3px solid var(--emas); outline-offset: 2px; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+main:focus { outline: none; }
+
+/* Lompat ke konten (keyboard) */
+.lompat { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--emas); color: var(--biru-gelap); font-weight: 700; padding: 10px 16px; border-radius: 0 0 var(--radius-kecil) var(--radius-kecil); text-decoration: none; }
+.lompat:focus { top: 0; }
+
+/* Ikon */
+.ik { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.2em; }
+[data-ikon] { display: inline-flex; }

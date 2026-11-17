@@ -7,7 +7,7 @@ HAL.guru.verifikasi = async function () {
     '<div id="daftar-verifikasi"><p class="muat">Memuat…</p></div>';
   var res = await api('listVerifikasi', guruPayload({ batas: 200 }));
   if (!res.ok) { $('daftar-verifikasi').innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
-  if (!res.data.length) { $('daftar-verifikasi').innerHTML = '<p class="muted">Tidak ada catatan verifikasi.</p>'; return; }
+  if (!res.data.length) { $('daftar-verifikasi').innerHTML = kosongHtml('verifikasi', 'Tidak ada catatan verifikasi', 'Catatan akan muncul setelah ada data yang perlu dicek.'); return; }
   var h = '<div class="tabel-wrap"><table><tr><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Masalah</th><th>Sumber</th><th>Status</th></tr>';
   res.data.forEach(function (v) {
     h += '<tr><td>' + esc(v.tanggal) + '</td><td>' + esc(v.nama) + '</td><td>' + esc(v.kelas) + '</td><td>' + esc(v.alasan) + '</td><td>' + esc(v.sumber) + '</td><td>' + esc(v.status) + '</td></tr>';

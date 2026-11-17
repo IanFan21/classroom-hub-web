@@ -112,7 +112,7 @@ HAL.guru.tugas = async function () {
       termasukArsip: $('filter-tugas-arsip').checked
     }));
     if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
-    if (!res.data.length) { target.innerHTML = '<p class="muted">Belum ada tugas.</p>'; return; }
+    if (!res.data.length) { target.innerHTML = kosongHtml('tugas', 'Belum ada tugas', 'Buat tugas lewat formulir di atas.'); return; }
     var h = '<div class="tabel-wrap"><table><tr><th>Judul</th><th>Kelas</th><th>Tenggat</th><th>Lampiran</th><th></th></tr>';
     var petaTugas = {};
     res.data.forEach(function (t) {
@@ -193,7 +193,7 @@ async function lihatPengumpulanGuru(idTugas) {
   var list = res.data.pengumpulan || [];
   var h = '<h3>Pengumpulan — ' + esc(t.judul) + ' (' + esc(t.kelas) + ', ' + esc(labelRentang(t.tanggal_mulai, t.tenggat)) + ')</h3>';
   if (!list.length) {
-    h += '<p class="muted">Belum ada yang mengumpulkan.</p>';
+    h += kosongHtml('kosong', 'Belum ada yang mengumpulkan', 'Pengumpulan siswa akan muncul di sini.');
   } else {
     h += '<div class="tabel-wrap"><table><tr><th>Siswa</th><th>Status</th><th>Nilai</th><th>Waktu Kumpul</th><th>Tautan</th><th>Nilai / Feedback</th></tr>';
     list.forEach(function (p) {
@@ -233,7 +233,7 @@ HAL.siswa.tugas = async function () {
   el.innerHTML = '<h2>Tugas Saya</h2><p class="muat">Memuat…</p>';
   var res = await api('listTugas', siswaPayload());
   if (!res.ok) { el.innerHTML = '<h2>Tugas</h2><p class="error">' + esc(res.error) + '</p>'; return; }
-  if (!res.data.length) { el.innerHTML = '<h2>Tugas Saya</h2><p class="muted">Belum ada tugas untuk kelas Anda.</p>'; return; }
+  if (!res.data.length) { el.innerHTML = '<h2>Tugas Saya</h2>' + kosongHtml('tugas', 'Belum ada tugas untuk kelas Anda', 'Tugas dari guru akan muncul di sini.'); return; }
   var h = '<h2>Tugas Saya</h2><div class="tabel-wrap"><table><tr><th>Judul</th><th>Tenggat</th><th>Lampiran</th><th>Status Saya</th><th></th></tr>';
   res.data.forEach(function (t) {
     h += '<tr><td>' + esc(t.judul) + (t.deskripsi ? '<br><span class="muted">' + esc(t.deskripsi) + '</span>' : '') + '</td>' +

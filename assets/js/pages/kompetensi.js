@@ -9,7 +9,7 @@ function badgeKategori(kategori) {
 }
 
 function tabelKompetensi(list) {
-  if (!list.length) return '<p class="muted">Belum ada data kompetensi. Jalankan "Hitung Kompetensi" dulu.</p>';
+  if (!list.length) return kosongHtml('kompetensi', 'Belum ada data kompetensi', 'Jalankan "Hitung Kompetensi" dulu.');
   var h = '<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas</th><th>Skor</th><th>Kategori</th><th>Rata Nilai</th><th>Tugas Dinilai</th><th>% Hadir</th><th>Hari</th><th>Basis</th><th>Dihitung Pada</th></tr>';
   list.forEach(function (k) {
     h += '<tr><td>' + esc(k.nama_siswa) + '</td><td>' + esc(k.kelas) + '</td>' +

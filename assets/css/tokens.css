@@ -30,8 +30,12 @@
   --sukses: var(--biru);
   --error: #b3261e;          /* pengecualian: peringatan & hapus */
 
+  /* Turunan biru untuk grafik batang */
+  --biru-70: #5a74a6;
+  --biru-40: #98a9c9;
+
   --radius: 12px;
   --radius-kecil: 8px;
   --bayangan: 0 1px 2px rgba(15, 38, 80, .06), 0 4px 14px rgba(15, 38, 80, .06);
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }

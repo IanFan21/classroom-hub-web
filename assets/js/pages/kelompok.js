@@ -10,7 +10,7 @@ async function petaNamaSiswa_(kelas) {
 }
 
 function tabelKelompok(list, petaNama) {
-  if (!list.length) return '<p class="muted">Belum ada kelompok.</p>';
+  if (!list.length) return kosongHtml('kelompok', 'Belum ada kelompok', 'Buat kelompok otomatis atau manual, hasilnya tampil di sini.');
   var h = '<div class="tabel-wrap"><table><tr><th>Kelompok</th><th>Kelas</th><th>Mode</th><th>Anggota</th><th>Rata Skor</th><th>Komposisi</th><th>Dibuat</th><th></th></tr>';
   list.forEach(function (k) {
     var nama = k.anggota.map(function (id) { return petaNama[id] || id; }).join('; ');
@@ -163,7 +163,7 @@ HAL.siswa.kelompok = async function () {
   var rs = await api('getSiswaByKelas', { kelas: s.kelas });
   if (rs.ok) rs.data.forEach(function (x) { peta[x.id_siswa] = x.nama; });
   var h = '<h2>Kelompok Saya</h2>';
-  if (!res.data.length) h += '<p class="muted">Belum ada kelompok untuk kelas Anda.</p>';
+  if (!res.data.length) h += kosongHtml('kelompok', 'Belum ada kelompok untuk kelas Anda', 'Guru akan membagi kelompok, lalu muncul di sini.');
   else {
     h += '<div class="tabel-wrap"><table><tr><th>Kelompok</th><th>Mode</th><th>Anggota</th><th>Rata Skor</th><th>Komposisi</th></tr>';
     res.data.forEach(function (k) {
