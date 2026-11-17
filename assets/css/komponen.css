@@ -192,3 +192,19 @@ th[data-urut-kolom] input[type="checkbox"] { margin-right: 6px; }
 .urut-hp { display: none; align-items: center; gap: 8px; margin: 0 0 10px; font-size: .9rem; }
 .urut-hp select { width: auto; flex: 1; }
 @media (max-width: 720px) { .urut-hp { display: flex; } }
+
+/* Perbaikan kotak centang (checkbox/radio) — 17 Nov 2026:
+   aturan dasar input teks (border, latar putih) dan .form-inline
+   (min-width 140px) ikut menempel pada checkbox, sehingga kotaknya
+   melebar seperti kolom teks dan teks labelnya jauh dari centang
+   (mis. "Siswa pintar", "Termasuk arsip"). Aturan ini mengembalikan
+   checkbox ke ukuran wajar dan menempel pada teksnya. */
+input[type="checkbox"], input[type="radio"] {
+  min-width: 0; border: 0; background: transparent;
+}
+.form-inline input[type="checkbox"], .form-inline input[type="radio"] {
+  width: 18px; min-width: 0;
+}
+
+/* Form sebaris: beri napas lebih lega antar kolom (sebelumnya 8px, terlalu mepet). */
+.form-inline { gap: 12px; }
