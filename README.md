@@ -3,15 +3,21 @@
 Frontend statis untuk Classroom Hub. Tanpa build, tanpa server, tanpa
 secret — hanya HTML + CSS + JavaScript biasa.
 
-**Struktur:** `index.html` + `app.js` (logika, root) + `assets/css/`
+**Struktur (sejak frontend v9, 17 Nov 2026):** `index.html` + `assets/css/`
 (tema 3 warna: `tokens.css`, `base.css`, `layout.css`,
-`komponen.css`) + `assets/js/` (modul JS per halaman — SAAT INI TIDAK
-DIMUAT; logika live ada di `app.js` root). `style.css` di root sudah
-tidak dipakai lagi — jangan di-push kembali.
+`komponen.css`) + `assets/js/` — satu-satunya logika yang live:
+`main.js` (titik masuk) + `core/` (`config.js`, `api.js`, `sesi.js`,
+`util.js`, `nilai.js` = skala huruf A+ s.d. E) + `pages/` (satu file
+per halaman: `auth`, `dashboard`, `kelas`, `materi`, `tugas`,
+`penilaian`, `kehadiran`, `kompetensi`, `kelompok`, `laporan`,
+`verifikasi`, `atur`). `app.js` root dan `style.css` root SUDAH
+DIHAPUS dari repo (digantikan modul) — jangan dibuat/push lagi.
+Skrip dimuat berurutan di akhir `index.html`; `dashboard.js`
+(mendefinisikan `HAL`) harus pertama di antara file `pages/`.
 
 ## Cara pakai
 
-1. Isi `APPS_SCRIPT_URL` di `app.js` dengan URL Web App Apps Script
+1. Isi `APPS_SCRIPT_URL` di `assets/js/core/config.js` dengan URL Web App Apps Script
    (berakhiran `/exec`).
 2. Push repo ini ke GitHub (publik) dan aktifkan GitHub Pages
    (Settings → Pages → Deploy from branch → `main` → `/ (root)`).
@@ -36,7 +42,7 @@ tidak dipakai lagi — jangan di-push kembali.
 - Pintu depan (kode akses) → pilih peran → login guru (kode) /
   login siswa (kelas → nama → PIN).
 - Guru: Dashboard, Kelas & Siswa (tambah/edit/hapus, buat PIN, impor CSV,
-  hapus massal kelas lulus — kolom Pintar dan Jenis_Kelamin opsional), Materi, Tugas (nilai 0–100 / revisi), Penilaian (nilai langsung tanpa pengumpulan — mis. praktek; angka 0–100 atau huruf A+ s.d. E), Kehadiran (rekap per tanggal atau sebulan, sinkron
+  hapus massal kelas lulus — kolom Pintar dan Jenis_Kelamin opsional), Materi, Tugas (nilai 0–100 / revisi), Penilaian (nilai langsung tanpa pengumpulan — mis. praktek; angka 0–100 atau huruf A+ s.d. E; form Buat Praktek di halaman yang sama — judul + tanggal, langsung bisa dinilai), Kehadiran (rekap per tanggal atau sebulan, sinkron
   Absensi QR, input manual), Kompetensi, Kelompok (heterogen/homogen/acak
   menyeimbangkan gender L/P dan siswa pintar; manual), Laporan
   (pratinjau + unduh CSV/XLSX/PDF + simpan ke Drive), Verifikasi, Atur.
