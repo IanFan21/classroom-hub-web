@@ -63,6 +63,9 @@ HAL.guru.tugas = async function () {
 
   $('form-tambah-tugas').addEventListener('submit', async function (ev) {
     ev.preventDefault();
+    var btnSimpan = $('btn-simpan-tugas');
+    if (btnSimpan.disabled) return; // cegah klik ganda membuat 2 baris tugas yang sama
+    btnSimpan.disabled = true;
     tunjukError('error-tugas', null);
     var fd = new FormData(ev.target);
     var dasar = {
@@ -75,7 +78,7 @@ HAL.guru.tugas = async function () {
       // Mode edit: hanya teks (judul/deskripsi/kelas/tanggal) yang berubah;
       // lampiran, tanggal dibuat, dan status arsip tetap.
       var resE = await api('editTugas', guruPayload(Object.assign(dasar, { id_tugas: editId })));
-      if (!resE.ok) { tunjukError('error-tugas', resE.error); return; }
+      if (!resE.ok) { tunjukError('error-tugas', resE.error); btnSimpan.disabled = false; return; }
       toast('Tugas diubah.');
       HAL.guru.tugas();
       return;
@@ -83,22 +86,22 @@ HAL.guru.tugas = async function () {
     var jenis = $('jenis-tugas').value;
     if (jenis === 'tautan') {
       var res = await api('tambahTugas', guruPayload(Object.assign(dasar, { url: fd.get('url') })));
-      if (!res.ok) { tunjukError('error-tugas', res.error); return; }
+      if (!res.ok) { tunjukError('error-tugas', res.error); btnSimpan.disabled = false; return; }
       toast('Tugas ditambahkan.');
       HAL.guru.tugas();
     } else if (jenis === 'file') {
       var file = $('file-tugas').files[0];
-      if (!file) { tunjukError('error-tugas', 'Pilih file dulu.'); return; }
+      if (!file) { tunjukError('error-tugas', 'Pilih file dulu.'); btnSimpan.disabled = false; return; }
       var base64 = await fileKeBase64(file);
       var up = await apiUpload('uploadTugas', guruPayload(Object.assign(dasar, {
         namaFile: file.name, mimeType: file.type, size: file.size, base64: base64
       })));
-      if (!up.ok) { tunjukError('error-tugas', up.error); return; }
+      if (!up.ok) { tunjukError('error-tugas', up.error); btnSimpan.disabled = false; return; }
       toast('File diunggah — memverifikasi…');
       setTimeout(function () { HAL.guru.tugas(); }, 1500);
     } else {
       var res2 = await api('tambahTugas', guruPayload(dasar));
-      if (!res2.ok) { tunjukError('error-tugas', res2.error); return; }
+      if (!res2.ok) { tunjukError('error-tugas', res2.error); btnSimpan.disabled = false; return; }
       toast('Tugas ditambahkan.');
       HAL.guru.tugas();
     }

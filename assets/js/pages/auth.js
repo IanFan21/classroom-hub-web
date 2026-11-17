@@ -94,32 +94,40 @@ function masukSiswa() {
   tunjukHal('siswa', 'dashboard');
 }
 
+/* Nomor urut pemuatan dropdown login — hasil pemuatan lama (basi)
+   dibuang supaya dua pemuatan yang tumpang tindih tidak menumpuk opsi
+   yang sama (pola bug yang sama dengan dropdown tugas di Penilaian). */
+var _muatKelasSiswaRun = 0;
+var _muatNamaSiswaRun = 0;
+
 async function muatKelasSiswa() {
+  var run = ++_muatKelasSiswaRun;
   var pilih = $('pilih-kelas-siswa');
   pilih.innerHTML = '<option value="">— Pilih kelas —</option>';
   var res = await api('getKelasList', {});
+  if (run !== _muatKelasSiswaRun) return;
   if (!res.ok) { tunjukError('error-siswa', res.error); return; }
+  var html = '<option value="">— Pilih kelas —</option>';
   res.data.forEach(function (k) {
-    var o = document.createElement('option');
-    o.value = k.nama_kelas;
-    o.textContent = k.nama_kelas;
-    pilih.appendChild(o);
+    html += '<option value="' + esc(k.nama_kelas) + '">' + esc(k.nama_kelas) + '</option>';
   });
+  pilih.innerHTML = html;
 }
 
 async function muatNamaSiswa(kelas) {
+  var run = ++_muatNamaSiswaRun;
   var pilih = $('pilih-nama-siswa');
   pilih.innerHTML = '<option value="">— Pilih nama —</option>';
   pilih.disabled = true;
   if (!kelas) return;
   var res = await api('getSiswaByKelas', { kelas: kelas });
+  if (run !== _muatNamaSiswaRun) return;
   if (!res.ok) { tunjukError('error-siswa', res.error); return; }
+  var html = '<option value="">— Pilih nama —</option>';
   res.data.forEach(function (s) {
-    var o = document.createElement('option');
-    o.value = s.nama;
-    o.textContent = s.nama;
-    pilih.appendChild(o);
+    html += '<option value="' + esc(s.nama) + '">' + esc(s.nama) + '</option>';
   });
+  pilih.innerHTML = html;
   pilih.disabled = false;
 }
 

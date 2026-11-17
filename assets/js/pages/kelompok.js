@@ -1,5 +1,11 @@
 /* ---------- Kelompok ---------- */
 
+/* Nomor urut pemuatan anggota manual — hasil pemuatan lama (basi)
+   dibuang supaya dua pemuatan yang tumpang tindih tidak menumpuk opsi
+   yang sama (pola bug yang sama dengan dropdown tugas di Penilaian).
+   HARUS di luar HAL (satu untuk semua pemuatan), bukan di dalam fungsi. */
+var _muatAnggotaManualRun = 0;
+
 async function petaNamaSiswa_(kelas) {
   var res = await api('listSiswa', guruPayload(kelas ? { kelas: kelas } : {}));
   var peta = {};
@@ -62,21 +68,22 @@ HAL.guru.kelompok = async function () {
   }
 
   var muatAnggotaManual = async function () {
+    var run = ++_muatAnggotaManualRun;
     var kelas = $('manual-kelas').value;
     var sel = $('manual-anggota');
     sel.innerHTML = '';
     if (!kelas) return;
     var res = await api('listSiswa', guruPayload({ kelas: kelas }));
+    if (run !== _muatAnggotaManualRun) return;
     if (!res.ok) return;
+    var html = '';
     res.data.forEach(function (s) {
-      var o = document.createElement('option');
-      o.value = s.id_siswa;
       var ket = [];
       if (s.jenis_kelamin === 'L' || s.jenis_kelamin === 'P') ket.push(s.jenis_kelamin);
       if (s.pintar) ket.push('Pintar');
-      o.textContent = s.nama + (ket.length ? ' (' + ket.join(' • ') + ')' : '');
-      sel.appendChild(o);
+      html += '<option value="' + esc(s.id_siswa) + '">' + esc(s.nama + (ket.length ? ' (' + ket.join(' • ') + ')' : '')) + '</option>';
     });
+    sel.innerHTML = html;
   };
   $('manual-kelas').addEventListener('change', muatAnggotaManual);
   muatAnggotaManual();

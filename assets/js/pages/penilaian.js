@@ -1,5 +1,10 @@
 /* ---------- Penilaian langsung (tanpa pengumpulan) ---------- */
 
+/* Nomor urut pemuatan daftar tugas — hasil pemuatan lama (basi) dibuang
+   supaya dua pemuatan yang tumpang tindih tidak menumpuk opsi yang sama
+   di dropdown (pernah terjadi: 1 tugas tampil 2x). */
+var _muatTugasPenilaianRun = 0;
+
 HAL.guru.penilaian = async function () {
   var el = $('hal-guru-penilaian');
   el.innerHTML = '<h2>Penilaian</h2>' +
@@ -27,16 +32,17 @@ HAL.guru.penilaian = async function () {
 
   var muatTugas = async function () {
     $('daftar-nilai').innerHTML = '';
+    var run = ++_muatTugasPenilaianRun;
     var sel = $('nilai-tugas');
     sel.innerHTML = '<option value="">— pilih tugas —</option>';
     var res = await api('listTugas', guruPayload({ kelas: $('nilai-kelas').value }));
+    if (run !== _muatTugasPenilaianRun) return; // ada pemuatan lebih baru — hasil ini basi, jangan digambar
     if (!res.ok) { toast(res.error); return; }
+    var html = '<option value="">— pilih tugas —</option>';
     res.data.forEach(function (t) {
-      var o = document.createElement('option');
-      o.value = t.id_tugas;
-      o.textContent = t.judul + ' (' + labelRentang(t.tanggal_mulai, t.tenggat) + ')';
-      sel.appendChild(o);
+      html += '<option value="' + esc(t.id_tugas) + '">' + esc(t.judul + ' (' + labelRentang(t.tanggal_mulai, t.tenggat) + ')') + '</option>';
     });
+    sel.innerHTML = html;
     if (!res.data.length) toast('Belum ada tugas di kelas ini — buat dulu di menu Tugas.');
   };
   $('nilai-kelas').addEventListener('change', muatTugas);
@@ -44,6 +50,9 @@ HAL.guru.penilaian = async function () {
 
   $('form-buat-praktek').addEventListener('submit', async function (ev) {
     ev.preventDefault();
+    var btnBuat = ev.target.querySelector('button[type="submit"]');
+    if (btnBuat.disabled) return; // cegah klik ganda membuat 2 baris tugas yang sama
+    btnBuat.disabled = true;
     tunjukError('error-praktek', null);
     var fd = new FormData(ev.target);
     var res = await api('tambahTugas', guruPayload({
@@ -51,7 +60,7 @@ HAL.guru.penilaian = async function () {
       kelas: $('nilai-kelas').value, tenggat: fd.get('tenggat'),
       tanggal_mulai: fd.get('tanggal_mulai') || ''
     }));
-    if (!res.ok) { tunjukError('error-praktek', res.error); return; }
+    if (!res.ok) { tunjukError('error-praktek', res.error); btnBuat.disabled = false; return; }
     toast('Praktek dibuat — silakan nilai.');
     ev.target.reset();
     ev.target.querySelector('input[name="tanggal_mulai"]').value = hariIni();
@@ -59,6 +68,7 @@ HAL.guru.penilaian = async function () {
     await muatTugas();
     var baru = res.data && res.data.id_tugas;
     if (baru) { $('nilai-tugas').value = baru; muat(); }
+    btnBuat.disabled = false;
   });
 
   var muat = async function () {
