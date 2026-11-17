@@ -1,62 +1,106 @@
-# Classroom Hub — Frontend (GitHub Pages)
+# 🎓 Classroom Hub
 
-Frontend statis untuk Classroom Hub. Tanpa build, tanpa server, tanpa
-secret — hanya HTML + CSS + JavaScript biasa.
+Aplikasi manajemen kelas untuk guru SMK — supaya urusan kelas sehari-hari
+(absensi, tugas, nilai, sampai laporan) bisa diurus dari satu tempat,
+tanpa server, tanpa biaya bulanan.
 
-**Struktur (sejak frontend v9, 17 Nov 2026):** `index.html` + `assets/css/`
-(tema 3 warna: `tokens.css`, `base.css`, `layout.css`,
-`komponen.css`) + `assets/js/` — satu-satunya logika yang live:
-`main.js` (titik masuk) + `core/` (`config.js`, `api.js`, `sesi.js`,
-`util.js`, `nilai.js` = skala huruf A+ s.d. E) + `pages/` (satu file
-per halaman: `auth`, `dashboard`, `kelas`, `materi`, `tugas`,
-`penilaian`, `kehadiran`, `kompetensi`, `kelompok`, `laporan`,
-`verifikasi`, `atur`). `app.js` root dan `style.css` root SUDAH
-DIHAPUS dari repo (digantikan modul) — jangan dibuat/push lagi.
-Skrip dimuat berurutan di akhir `index.html`; `dashboard.js`
-(mendefinisikan `HAL`) harus pertama di antara file `pages/`.
+🌐 **Coba langsung:** https://ianfan21.github.io/classroom-hub-web/
 
-## Cara pakai
+## Kenapa dibuat
 
-1. Isi `APPS_SCRIPT_URL` di `assets/js/core/config.js` dengan URL Web App Apps Script
-   (berakhiran `/exec`).
-2. Push repo ini ke GitHub (publik) dan aktifkan GitHub Pages
-   (Settings → Pages → Deploy from branch → `main` → `/ (root)`).
-3. Buka `https://<username>.github.io/classroom-hub-web/`.
+Aplikasi ini saya buat untuk kelas saya sendiri (TKJ). Sebelumnya nilai,
+absensi, dan daftar siswa tersebar di mana-mana — ada yang di spreadsheet,
+ada yang di chat, ada yang di kepala. Classroom Hub mengumpulkan semuanya
+jadi satu, dengan satu prinsip: **data harus benar dulu, baru yang lain**.
+Kalau seorang siswa hadir hari itu, yang tercatat ya hadir — bukan alpha.
+
+Sengaja dibuat sesederhana mungkin: tidak ada server yang harus dijaga,
+tidak ada tagihan, dan tidak ada data yang disimpan di tempat yang
+tidak saya kenal. Datanya tinggal di Google Sheets dan Google Drive
+milik sendiri.
+
+## Yang bisa dilakukan
+
+**Untuk guru**
+- 📋 **Kelas & Siswa** — tambah/edit/hapus siswa, impor dari CSV, buat PIN
+  untuk tiap siswa, hapus massal kalau satu kelas sudah lulus.
+- 📚 **Materi** — unggah file atau tautan ke Drive, diarsipkan kalau
+  sudah tidak dipakai (bukan dihapus).
+- 📝 **Tugas** — buat tugas dengan tanggal mulai–selesai, edit atau hapus,
+  terima pengumpulan berupa tautan atau file, beri nilai dan revisi.
+- ⭐ **Penilaian** — nilai praktek langsung tanpa menunggu pengumpulan,
+  pakai angka 0–100 atau huruf A+ sampai E. Bisa pilih beberapa siswa
+  lalu simpan nilainya sekaligus.
+- 🗓️ **Kehadiran** — rekap per tanggal atau sebulan penuh, sinkron dari
+  absensi QR, atau isi manual.
+- 📈 **Kompetensi** — skor dihitung otomatis: 70% nilai + 30% kehadiran,
+  dengan kategori Perlu bimbingan, Berkembang, Kompeten, Sangat kompeten.
+- 👥 **Kelompok** — generator kelompok yang seimbang (campur skor,
+  seimbangkan laki-laki/perempuan dan siswa pintar), atau susun manual.
+- 📄 **Laporan** — pratinjau di layar, unduh sebagai CSV/XLSX/PDF,
+  atau simpan ke Drive.
+
+**Untuk siswa**
+- Lihat materi, kumpulkan tugas, cek kehadiran dan kompetensi sendiri,
+  dan lihat kelompoknya. Semua pakai PIN masing-masing, jadi tiap siswa
+  hanya melihat datanya sendiri.
+
+Semua tabel bisa diurutkan — tinggal klik judul kolomnya.
 
 ## Cara kerja
 
-- Semua aksi ke backend lewat **JSONP GET** (`?payload={...}&callback=...`,
-  timeout 40 detik) — pola yang sama dengan absensi-pkl.
-- Upload file lewat **POST `no-cors`** (fire-and-forget, dua fase:
-  upload dulu, lalu verifikasi dengan aksi baca).
-- Sesi disimpan di `sessionStorage` (hilang saat tab ditutup):
-  kode akses pintu depan, token guru, dan `{idSiswa, pin}` siswa.
-- Tidak ada secret di repo ini. Dua kode dicek di server (Script
-  Properties): `GURU_KODE` (login guru saja — rahasia, jangan pernah
-  dibagikan ke siswa) dan `KODE_AKSES` (pintu depan, dibagikan ke
-  siswa; diatur guru dari halaman Atur, harus beda dari kode guru).
-  PIN siswa dicek di server (kolom `Token` tab Siswa).
+Singkatnya: halaman web statis + Google Apps Script + Google Sheets/Drive.
 
-## Layar
+- **Frontend** (repo ini): HTML + CSS + JavaScript biasa, di-host gratis
+  di GitHub Pages. Tanpa proses build, tanpa framework.
+- **Backend**: Google Apps Script (Web App) yang membaca dan menulis
+  spreadsheet. Semua aturan — dedup kehadiran, hitung kompetensi,
+  kelompok — tinggal di sana.
+- **Data**: spreadsheet dan folder Drive milik sendiri. Tidak ada
+  database pihak ketiga, tidak ada secret yang tersimpan di repo ini.
 
-- Pintu depan (kode akses) → pilih peran → login guru (kode) /
-  login siswa (kelas → nama → PIN).
-- Guru: Dashboard, Kelas & Siswa (tambah/edit/hapus, buat PIN, impor CSV,
-  hapus massal kelas lulus — kolom Pintar dan Jenis_Kelamin opsional), Materi, Tugas (tambah/edit/hapus, arsip; tanggal mulai opsional — tampil sebagai rentang "Mulai s.d. Tenggat"; nilai 0–100 / revisi), Penilaian (nilai langsung tanpa pengumpulan — mis. praktek; angka 0–100 atau huruf A+ s.d. E; form Buat Praktek di halaman yang sama — judul + Mulai–Sampai, langsung bisa dinilai), Kehadiran (rekap per tanggal atau sebulan, sinkron
-  Absensi QR, input manual), Kompetensi, Kelompok (heterogen/homogen/acak
-  menyeimbangkan gender L/P dan siswa pintar; manual), Laporan
-  (pratinjau + unduh CSV/XLSX/PDF + simpan ke Drive), Verifikasi, Atur.
-- Siswa: Dashboard, Materi, Tugas (kumpul tautan/file), Kehadiran,
-  Kompetensi, Kelompok, Laporan (hanya datanya sendiri).
+Login guru pakai kode rahasia, siswa pakai PIN. Ada juga kode akses pintu
+depan yang bisa dibagikan ke siswa — semuanya dicek di server, bukan di
+browser. Sesi guru berlaku 6 jam, setelah itu login ulang.
 
-## Batas yang perlu diketahui
+## Kalau mau pasang sendiri
 
-- JSONP GET punya batas panjang URL — impor siswa dikirim per chunk
-  ±20 baris; laporan besar sebaiknya diunduh sebagai berkas, bukan
-  pratinjau JSON.
-- File maksimal 25 MB (PDF, DOCX, PPTX, PNG/JPG/GIF/WebP).
+1. Siapkan backend-nya dulu: sebuah project Google Apps Script (Web App)
+   yang terhubung ke spreadsheet Classroom Hub, lalu salin URL-nya
+   (yang berakhiran `/exec`).
+2. Isi URL itu di `assets/js/core/config.js` pada `APPS_SCRIPT_URL`.
+3. Push repo ini ke GitHub dan aktifkan GitHub Pages
+   (Settings → Pages → Deploy from branch → `main` → `/ (root)`).
+4. Buka `https://<username>.github.io/classroom-hub-web/`.
+
+## Struktur proyek
+
+```
+index.html
+assets/
+  css/   tokens.css, base.css, layout.css, komponen.css (tema 3 warna)
+  js/
+    main.js            titik masuk
+    core/              config.js, api.js, sesi.js, util.js, nilai.js, urut.js, ikon.js, ui.js
+    pages/             satu file per halaman (auth, dashboard, kelas, materi,
+                       tugas, penilaian, kehadiran, kompetensi, kelompok,
+                       laporan, verifikasi, atur)
+```
+
+Skrip dimuat berurutan di akhir `index.html`. Catatan buat yang mau
+ikut utak-atik: `app.js` dan `style.css` di root sudah dihapus dan
+digantikan modul di atas — jangan dibuat lagi.
+
+## Batasan yang perlu diketahui
+
+- Komunikasi ke backend pakai JSONP, jadi ada batas panjang URL — impor
+  siswa besar dikirim per chunk ±20 baris, dan laporan besar sebaiknya
+  diunduh sebagai berkas, bukan dibuka sebagai pratinjau.
+- File yang diunggah maksimal 25 MB (PDF, DOCX, PPTX, PNG/JPG/GIF/WebP).
 - Sesi guru berlaku 6 jam (CacheService); sesudah itu login ulang.
 
-## Urutkan tabel
+## Catatan
 
-Semua tabel otomatis bisa diurutkan: klik judul kolom (naik → turun → urutan awal). Kolom berisi isian atau tombol tidak ikut. Logikanya di `assets/js/core/urut.js`; di HP, tabel penilaian punya menu "Urutkan".
+Dibuat untuk dipakai di kelas sendiri — kalau mau dipakai atau diubah
+untuk sekolahmu, silakan. Kalau menemukan yang aneh atau ada ide,
+buka saja issue di repo ini.
