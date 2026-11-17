@@ -788,6 +788,69 @@ function badgeStatus(status) {
   return '<span class="badge ' + cls + '">' + esc(status) + '</span>';
 }
 
+/* Skala huruf A+ s.d. E — CERMIN backend 03_Logic.gs (SKALA_HURUF). Jaga tetap sama. */
+var SKALA_HURUF = [
+  { huruf: 'A+', min: 97 }, { huruf: 'A', min: 93 }, { huruf: 'A-', min: 90 },
+  { huruf: 'B+', min: 87 }, { huruf: 'B', min: 83 }, { huruf: 'B-', min: 80 },
+  { huruf: 'C+', min: 77 }, { huruf: 'C', min: 73 }, { huruf: 'C-', min: 70 },
+  { huruf: 'D+', min: 67 }, { huruf: 'D', min: 63 }, { huruf: 'D-', min: 60 },
+  { huruf: 'E', min: 0 }
+];
+
+function hurufNilai(nilai) {
+  if (nilai === null || nilai === undefined || nilai === '' || !isFinite(nilai)) return null;
+  var n = Math.max(0, Math.min(100, Number(nilai)));
+  for (var i = 0; i < SKALA_HURUF.length; i++) {
+    if (n >= SKALA_HURUF[i].min) return SKALA_HURUF[i].huruf;
+  }
+  return 'E';
+}
+
+function nilaiDariHuruf(huruf) {
+  huruf = String(huruf || '').trim().toUpperCase();
+  for (var i = 0; i < SKALA_HURUF.length; i++) {
+    if (SKALA_HURUF[i].huruf === huruf) {
+      var atas = i === 0 ? 100 : SKALA_HURUF[i - 1].min - 1;
+      return Math.round((SKALA_HURUF[i].min + atas) / 2);
+    }
+  }
+  return null;
+}
+
+/** "85 (B)" untuk tampilan; "—" bila belum ada nilai. */
+function labelNilai(nilai) {
+  var h = hurufNilai(nilai);
+  return h === null ? '—' : nilai + ' (' + h + ')';
+}
+
+/** Opsi <select> huruf untuk form nilai. */
+function opsiHuruf() {
+  var h = '<option value="">Huruf…</option>';
+  SKALA_HURUF.forEach(function (s) { h += '<option value="' + s.huruf + '">' + s.huruf + '</option>'; });
+  return h;
+}
+
+/**
+ * Pasang pilih-huruf + pratinjau huruf live pada satu form nilai.
+ * Form harus punya input[name=nilai], select[name=huruf] dan
+ * span.huruf-nilai. Memilih huruf mengisi angka tengah pitanya;
+ * mengetik angka memperbarui pratinjau huruf.
+ */
+function pasangPilihHuruf(form) {
+  var inputAngka = form.querySelector('input[name="nilai"]');
+  var pilih = form.querySelector('select[name="huruf"]');
+  var pratinjau = form.querySelector('.huruf-nilai');
+  var perbarui = function () {
+    if (pratinjau) pratinjau.textContent = hurufNilai(inputAngka.value) || '';
+  };
+  if (inputAngka) inputAngka.addEventListener('input', perbarui);
+  if (pilih) pilih.addEventListener('change', function () {
+    var tengah = nilaiDariHuruf(pilih.value);
+    if (tengah !== null && inputAngka) { inputAngka.value = tengah; perbarui(); }
+  });
+  perbarui();
+}
+
 /** Label jenis kelamin: 'L' -> Laki-laki, 'P' -> Perempuan, else '—'. */
 function labelJK(jk) {
   if (jk === 'L') return 'Laki-laki';
@@ -928,10 +991,11 @@ async function lihatPengumpulanGuru(idTugas) {
     h += '<div class="tabel-wrap"><table><tr><th>Siswa</th><th>Status</th><th>Nilai</th><th>Waktu Kumpul</th><th>Tautan</th><th>Nilai / Feedback</th></tr>';
     list.forEach(function (p) {
       h += '<tr><td>' + esc(p.nama_siswa) + '</td><td>' + badgeStatus(p.status) + '</td>' +
-        '<td>' + (p.nilai === null ? '—' : esc(p.nilai)) + '</td><td>' + esc(p.waktu_kumpul) + '</td>' +
+        '<td>' + esc(labelNilai(p.nilai)) + '</td><td>' + esc(p.waktu_kumpul) + '</td>' +
         '<td>' + (p.link_file ? '<a href="' + esc(p.link_file) + '" target="_blank" rel="noopener">Buka</a>' : '—') + '</td>' +
         '<td><form class="form-inline" data-form-nilai="' + esc(p.id_pengumpulan) + '">' +
-        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (p.nilai === null ? '' : esc(p.nilai)) + '" style="width:70px"></label>' +
+        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (p.nilai === null ? '' : esc(p.nilai)) + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
+        '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
         '<label>Feedback<input name="feedback" value="' + esc(p.feedback || '') + '"></label>' +
         '<label>Status<select name="status"><option value="Sudah dinilai"' + (p.status === 'Sudah dinilai' ? ' selected' : '') + '>Sudah dinilai</option><option value="Perlu revisi"' + (p.status === 'Perlu revisi' ? ' selected' : '') + '>Perlu revisi</option></select></label>' +
         '<button type="submit" class="tombol kecil utama">Simpan nilai</button></form></td></tr>';
@@ -940,6 +1004,7 @@ async function lihatPengumpulanGuru(idTugas) {
   }
   target.innerHTML = h;
   target.querySelectorAll('[data-form-nilai]').forEach(function (f) {
+    pasangPilihHuruf(f);
     f.addEventListener('submit', async function (ev) {
       ev.preventDefault();
       var fd = new FormData(f);
@@ -979,7 +1044,7 @@ HAL.siswa.tugas = async function () {
     if (!sel) return;
     if (!r.ok || !r.data.pengumpulan.length) { sel.innerHTML = badgeStatus('Belum mengumpulkan'); return; }
     var p = r.data.pengumpulan[0];
-    sel.innerHTML = badgeStatus(p.status) + (p.nilai !== null ? ' · Nilai: ' + esc(p.nilai) : '') + (p.feedback ? '<br><span class="muted">' + esc(p.feedback) + '</span>' : '');
+    sel.innerHTML = badgeStatus(p.status) + (p.nilai !== null ? ' · Nilai: ' + esc(labelNilai(p.nilai)) : '') + (p.feedback ? '<br><span class="muted">' + esc(p.feedback) + '</span>' : '');
   });
 
   el.querySelectorAll('[data-kumpul]').forEach(function (b) {
@@ -1056,7 +1121,7 @@ function csvDariRekap(rekap) {
 HAL.guru.penilaian = async function () {
   var el = $('hal-guru-penilaian');
   el.innerHTML = '<h2>Penilaian</h2>' +
-    '<p class="muted">Nilai langsung tanpa pengumpulan — mis. nilai praktek di lab. Pilih kelas dan tugas/praktek, lalu isi nilai tiap siswa. Nilai di sini sama dengan nilai tugas biasa: langsung terhitung di Kompetensi. Buat tugas/praktek dulu di menu Tugas kalau belum ada.</p>' +
+    '<p class="muted">Nilai langsung tanpa pengumpulan — mis. nilai praktek di lab. Pilih kelas dan tugas/praktek, lalu isi nilai tiap siswa (angka 0–100 atau pilih huruf A+ s.d. E). Nilai di sini sama dengan nilai tugas biasa: langsung terhitung di Kompetensi. Buat tugas/praktek dulu di menu Tugas kalau belum ada.</p>' +
     '<div class="form-inline"><label>Kelas<select id="nilai-kelas">' + opsiKelas(_kelasCache.length ? _kelasCache : [], false) + '</select></label>' +
     '<label>Tugas / Praktek<select id="nilai-tugas"></select></label>' +
     '<button class="tombol kecil" id="btn-muat-nilai">Tampilkan</button></div>' +
@@ -1106,16 +1171,18 @@ HAL.guru.penilaian = async function () {
     siswa.forEach(function (s) {
       var cur = peta[s.id_siswa];
       var status = cur ? cur.status : 'Belum dinilai';
-      var nilaiTxt = cur && cur.nilai !== null ? esc(cur.nilai) : '—';
+      var nilaiTxt = esc(labelNilai(cur && cur.nilai !== null ? cur.nilai : null));
       if (cur && cur.jenis === 'langsung') nilaiTxt += ' <span class="muted">(langsung)</span>';
       h += '<tr><td>' + esc(s.nama) + '</td><td>' + badgeStatus(status) + '</td><td>' + nilaiTxt + '</td>' +
         '<td><form class="form-inline" data-form-nilai-langsung="' + esc(s.id_siswa) + '">' +
-        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (cur && cur.nilai !== null ? esc(cur.nilai) : '') + '" style="width:70px"></label>' +
+        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (cur && cur.nilai !== null ? esc(cur.nilai) : '') + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
+        '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
         '<label>Feedback<input name="feedback" value="' + esc(cur ? (cur.feedback || '') : '') + '"></label>' +
         '<button type="submit" class="tombol kecil utama">Simpan nilai</button></form></td></tr>';
     });
-    target.innerHTML = h + '</table></div><p class="muted">Menyimpan nilai langsung menimpa nilai sebelumnya untuk tugas ini (riwayat tersimpan). Nilai 0–100.</p>';
+    target.innerHTML = h + '</table></div><p class="muted">Menyimpan nilai langsung menimpa nilai sebelumnya untuk tugas ini (riwayat tersimpan). Nilai 0–100 — pilih huruf untuk mengisi angka tengah pitanya (A+ 99, A 95, A- 91, B+ 88, B 85, B- 81, C+ 78, C 75, C- 71, D+ 68, D 65, D- 61, E 30).</p>';
     target.querySelectorAll('[data-form-nilai-langsung]').forEach(function (f) {
+      pasangPilihHuruf(f);
       f.addEventListener('submit', async function (ev) {
         ev.preventDefault();
         var fd = new FormData(f);
@@ -1325,7 +1392,7 @@ function tabelKompetensi(list) {
   list.forEach(function (k) {
     h += '<tr><td>' + esc(k.nama_siswa) + '</td><td>' + esc(k.kelas) + '</td>' +
       '<td>' + (k.skor === null ? '—' : esc(k.skor)) + '</td><td>' + badgeKategori(k.kategori) + '</td>' +
-      '<td>' + (k.rata_nilai === null ? '—' : esc(k.rata_nilai)) + '</td>' +
+      '<td>' + (k.rata_nilai === null ? '—' : esc(labelNilai(k.rata_nilai))) + '</td>' +
       '<td>' + esc(k.jumlah_tugas_dinilai) + '</td>' +
       '<td>' + (k.persen_hadir === null ? '—' : esc(k.persen_hadir) + '%') + '</td>' +
       '<td>' + esc(k.jumlah_hari) + '</td><td>' + esc(k.basis) + '</td><td>' + esc(k.dihitung_pada) + '</td></tr>';
