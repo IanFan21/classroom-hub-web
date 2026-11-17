@@ -45,17 +45,21 @@ function opsiHuruf() {
 }
 
 /**
- * Pasang pilih-huruf + pratinjau huruf live pada satu form nilai.
- * Form harus punya input[name=nilai], select[name=huruf] dan
- * span.huruf-nilai. Memilih huruf mengisi angka tengah pitanya;
- * mengetik angka memperbarui pratinjau huruf.
+ * Pasang pilih-huruf pada satu form nilai.
+ * Form harus punya input[name=nilai] dan select[name=huruf]
+ * (span.huruf-nilai opsional, bila masih dipakai di tempat lain).
+ * Memilih huruf mengisi angka tengah pitanya; mengetik angka
+ * memperbarui pilihan huruf — jadi hurufnya selalu terlihat di
+ * dropdown, tanpa elemen tambahan yang merusak baris.
  */
 function pasangPilihHuruf(form) {
   var inputAngka = form.querySelector('input[name="nilai"]');
   var pilih = form.querySelector('select[name="huruf"]');
   var pratinjau = form.querySelector('.huruf-nilai');
   var perbarui = function () {
-    if (pratinjau) pratinjau.textContent = hurufNilai(inputAngka.value) || '';
+    var h = hurufNilai(inputAngka.value);
+    if (pratinjau) pratinjau.textContent = h || '';
+    if (pilih) pilih.value = h || '';
   };
   if (inputAngka) inputAngka.addEventListener('input', perbarui);
   if (pilih) pilih.addEventListener('change', function () {

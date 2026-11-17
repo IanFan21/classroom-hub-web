@@ -98,7 +98,7 @@ HAL.guru.penilaian = async function () {
       if (cur && cur.jenis === 'langsung') nilaiTxt += ' <span class="muted">(langsung)</span>';
       h += '<tr><td><input type="checkbox" class="pilih-nilai" data-id-siswa="' + esc(s.id_siswa) + '"> ' + esc(s.nama) + '</td><td>' + badgeStatus(status) + '</td><td>' + nilaiTxt + '</td>' +
         '<td><form class="form-inline" data-form-nilai-langsung="' + esc(s.id_siswa) + '">' +
-        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (cur && cur.nilai !== null ? esc(cur.nilai) : '') + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
+        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (cur && cur.nilai !== null ? esc(cur.nilai) : '') + '"></label>' +
         '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
         '<label>Feedback<input name="feedback" value="' + esc(cur ? (cur.feedback || '') : '') + '"></label>' +
         '<button type="submit" class="tombol kecil utama">Simpan nilai</button></form></td></tr>';

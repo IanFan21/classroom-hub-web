@@ -204,7 +204,7 @@ async function lihatPengumpulanGuru(idTugas) {
         '<td>' + esc(labelNilai(p.nilai)) + '</td><td>' + esc(p.waktu_kumpul) + '</td>' +
         '<td>' + (p.link_file ? '<a href="' + esc(p.link_file) + '" target="_blank" rel="noopener">Buka</a>' : '—') + '</td>' +
         '<td><form class="form-inline" data-form-nilai="' + esc(p.id_pengumpulan) + '">' +
-        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (p.nilai === null ? '' : esc(p.nilai)) + '" style="width:70px"> <span class="huruf-nilai"></span></label>' +
+        '<label>Nilai<input name="nilai" type="number" min="0" max="100" step="1" value="' + (p.nilai === null ? '' : esc(p.nilai)) + '"></label>' +
         '<label>Huruf<select name="huruf">' + opsiHuruf() + '</select></label>' +
         '<label>Feedback<input name="feedback" value="' + esc(p.feedback || '') + '"></label>' +
         '<label>Status<select name="status"><option value="Sudah dinilai"' + (p.status === 'Sudah dinilai' ? ' selected' : '') + '>Sudah dinilai</option><option value="Perlu revisi"' + (p.status === 'Perlu revisi' ? ' selected' : '') + '>Perlu revisi</option></select></label>' +
