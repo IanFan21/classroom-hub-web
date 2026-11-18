@@ -10,6 +10,25 @@ function opsiKelas(list, pilihSemua) {
   return html;
 }
 
+/* Ambil ID spreadsheet dari link lengkap (/d/<id>/) atau ID mentah. */
+function ambilIdSpreadsheetForm(teks) {
+  teks = String(teks || '').trim();
+  var m = teks.match(/\/d\/([A-Za-z0-9-_]+)/);
+  return m ? m[1] : teks;
+}
+
+/* Tebak kolom Form dari judulnya — dipakai mengisi awal dropdown pemetaan
+   (guru tetap bisa mengubahnya sebelum impor). */
+function tebakKolomForm(header, kunci) {
+  var h = header.map(function (x) { return String(x || '').trim().toLowerCase(); });
+  for (var i = 0; i < h.length; i++) {
+    for (var k = 0; k < kunci.length; k++) {
+      if (h[i].indexOf(kunci[k]) !== -1) return i;
+    }
+  }
+  return -1;
+}
+
 HAL.guru.kelas = async function () {
   var el = $('hal-guru-kelas');
   el.innerHTML = '<h2>Kelas &amp; Siswa</h2><p class="muat">Memuat…</p>';
@@ -67,6 +86,20 @@ HAL.guru.kelas = async function () {
     '<input type="file" id="file-impor-siswa" accept=".csv,text/csv">' +
     '<button class="tombol" id="btn-impor-siswa">Impor</button>' +
     '<div id="hasil-impor"></div>' +
+    '<h3>Impor dari Google Form</h3>' +
+    '<p class="muted">Siswa mengisi Google Form (Nama, Kelas, Jenis Kelamin, …), jawabannya otomatis masuk ke spreadsheet. Tempel link spreadsheet hasil Form di bawah, pilih kolomnya, lalu impor — sama seperti impor CSV: duplikat dilewati, yang meragukan masuk Verifikasi.</p>' +
+    '<div class="form-inline"><label>Link / ID spreadsheet hasil Form<input id="input-form-sheet" placeholder="https://docs.google.com/spreadsheets/d/…"></label>' +
+    '<button type="button" class="tombol" id="btn-baca-form">Baca kolom</button></div>' +
+    '<div id="panel-peta-form" hidden>' +
+    '<div class="form-inline"><label>Tab spreadsheet<select id="pilih-sheet-form"></select></label></div>' +
+    '<div class="form-inline"><label>Nama *<select id="peta-nama"></select></label>' +
+    '<label>Kelas *<select id="peta-kelas"></select></label>' +
+    '<label>Email<select id="peta-email"></select></label>' +
+    '<label>Pintar<select id="peta-pintar"></select></label>' +
+    '<label>Jenis kelamin<select id="peta-jk"></select></label></div>' +
+    '<p class="muted">Kolom bertanda * wajib dipilih. Kolom Timestamp jawaban Form tidak perlu dipetakan — diabaikan.</p>' +
+    '<button type="button" class="tombol utama" id="btn-impor-form">Impor dari Form</button></div>' +
+    '<div id="hasil-impor-form"></div>' +
     '<h3>Hapus Massal (Lulus)</h3>' +
     '<p class="muted">Untuk kelas yang sudah lulus: hapus SEKALIGUS semua siswa di kelas itu. Hanya data siswa di tab Siswa yang dihapus — riwayat kehadiran, kompetensi, dan pengumpulan tetap tersimpan. <strong>Tidak bisa dibatalkan.</strong></p>' +
     '<div class="form-inline"><label>Kelas<select id="hapus-massal-kelas">' + opsiKelas(_kelasCache, false) + '</select></label>' +
@@ -219,6 +252,88 @@ HAL.guru.kelas = async function () {
       hasil.masukVerifikasi = hasil.masukVerifikasi.concat(res.data.masukVerifikasi);
       hasil.diimporNama = hasil.diimporNama.concat(res.data.diimporNama);
     }
+    var h = '<p class="sukses-teks">Impor selesai: ' + hasil.diimpor + ' diimpor, ' + hasil.dilewatiDuplikat + ' duplikat dilewati, ' + hasil.masukVerifikasi.length + ' masuk verifikasi.</p>';
+    if (hasil.masukVerifikasi.length) {
+      h += '<div class="tabel-wrap"><table><tr><th>Baris</th><th>Nama</th><th>Kelas</th><th>Alasan</th></tr>';
+      hasil.masukVerifikasi.forEach(function (v) {
+        h += '<tr><td>' + esc(v.baris) + '</td><td>' + esc(v.nama) + '</td><td>' + esc(v.kelas) + '</td><td>' + esc(v.alasan) + '</td></tr>';
+      });
+      h += '</table></div>';
+    }
+    target.innerHTML = h;
+    muatSiswa($('filter-siswa-kelas').value);
+  });
+
+  /* ---------- Impor dari Google Form ---------- */
+
+  var isiOpsiKolom = function (sel, header, kosongLabel) {
+    var html = '<option value="">' + esc(kosongLabel) + '</option>';
+    header.forEach(function (h, i) {
+      html += '<option value="' + i + '">' + esc(h || ('Kolom ' + (i + 1))) + '</option>';
+    });
+    sel.innerHTML = html;
+  };
+
+  var terapkanTebakanKolom = function (header) {
+    var pasang = function (id, kunci) {
+      var t = tebakKolomForm(header, kunci);
+      $(id).value = t === -1 ? '' : String(t);
+    };
+    pasang('peta-nama', ['nama']);
+    pasang('peta-kelas', ['kelas']);
+    pasang('peta-email', ['email']);
+    pasang('peta-pintar', ['pintar']);
+    pasang('peta-jk', ['jenis kelamin', 'jenis_kelamin', 'kelamin']);
+  };
+
+  var bacaForm = async function (sheet) {
+    var id = ambilIdSpreadsheetForm($('input-form-sheet').value);
+    if (!id) { toast('Tempel dulu link atau ID spreadsheet hasil Form.'); return; }
+    var btn = $('btn-baca-form');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    var res = await api('bacaHeaderForm', guruPayload({ spreadsheetId: id, sheet: sheet || '' }));
+    btn.disabled = false;
+    if (!res.ok) { toast(res.error); return; }
+    var d = res.data;
+    $('input-form-sheet').dataset.spreadsheetId = d.spreadsheetId;
+    $('panel-peta-form').hidden = false;
+    $('pilih-sheet-form').innerHTML = d.sheets.map(function (s) {
+      return '<option value="' + esc(s) + '"' + (s === d.sheet ? ' selected' : '') + '>' + esc(s) + '</option>';
+    }).join('');
+    isiOpsiKolom($('peta-nama'), d.header, '— pilih kolom Nama —');
+    isiOpsiKolom($('peta-kelas'), d.header, '— pilih kolom Kelas —');
+    isiOpsiKolom($('peta-email'), d.header, '— tidak dipakai —');
+    isiOpsiKolom($('peta-pintar'), d.header, '— tidak dipakai —');
+    isiOpsiKolom($('peta-jk'), d.header, '— tidak dipakai —');
+    terapkanTebakanKolom(d.header);
+    toast('Ditemukan ' + d.jumlahBaris + ' jawaban di tab "' + d.sheet + '".');
+  };
+
+  $('btn-baca-form').addEventListener('click', function () { bacaForm(''); });
+  $('pilih-sheet-form').addEventListener('change', function () { bacaForm($('pilih-sheet-form').value); });
+
+  $('btn-impor-form').addEventListener('click', async function () {
+    var btn = $('btn-impor-form');
+    if (btn.disabled) return;
+    var id = $('input-form-sheet').dataset.spreadsheetId || ambilIdSpreadsheetForm($('input-form-sheet').value);
+    var ambilIdx = function (idSel) {
+      var v = $(idSel).value;
+      return v === '' ? null : Number(v);
+    };
+    var pemetaan = {
+      nama: ambilIdx('peta-nama'), kelas: ambilIdx('peta-kelas'),
+      email: ambilIdx('peta-email'), pintar: ambilIdx('peta-pintar'),
+      jenis_kelamin: ambilIdx('peta-jk')
+    };
+    if (pemetaan.nama === null || pemetaan.kelas === null) { toast('Pilih dulu kolom Nama dan kolom Kelas.'); return; }
+    btn.disabled = true;
+    var target = $('hasil-impor-form');
+    target.innerHTML = '<p class="muat">Mengimpor jawaban Form…</p>';
+    var res = await api('importDariForm', guruPayload({ spreadsheetId: id, sheet: $('pilih-sheet-form').value, pemetaan: pemetaan }));
+    btn.disabled = false;
+    if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
+    var hasil = res.data;
     var h = '<p class="sukses-teks">Impor selesai: ' + hasil.diimpor + ' diimpor, ' + hasil.dilewatiDuplikat + ' duplikat dilewati, ' + hasil.masukVerifikasi.length + ' masuk verifikasi.</p>';
     if (hasil.masukVerifikasi.length) {
       h += '<div class="tabel-wrap"><table><tr><th>Baris</th><th>Nama</th><th>Kelas</th><th>Alasan</th></tr>';
