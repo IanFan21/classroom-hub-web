@@ -29,6 +29,40 @@ function tebakKolomForm(header, kunci) {
   return -1;
 }
 
+/* Normalisasi jenis kelamin di browser (cerminan normalisasiJK_ backend):
+   'L'/'P', atau '' kalau tidak dikenal. */
+function normalisasiJkJs_(v) {
+  var s = String(v || '').trim().toUpperCase();
+  if (s === 'L' || s === 'LAKI-LAKI' || s === 'LAKI LAKI' || s === 'COWOK' || s === 'PRIA') return 'L';
+  if (s === 'P' || s === 'PEREMPUAN' || s === 'CEWEK' || s === 'WANITA') return 'P';
+  return '';
+}
+
+/* Urai satu baris daftar nama massal: "Nama" saja, atau nama + jenis
+   kelamin di belakangnya ("Nama, L" / "Nama - P" / "Nama | Perempuan").
+   Segmen terakhir hanya dianggap jenis kelamin bila dikenali; kalau
+   tidak, seluruh baris dianggap nama. */
+function uraiBarisNamaMassal(baris) {
+  var s = String(baris || '').trim();
+  if (!s) return null;
+  var nama = s, jk = '';
+  var m = s.match(/^(.*)[,;\t|] *([^,;\t|]+)$/);
+  if (m) {
+    var tail = normalisasiJkJs_(m[2]);
+    if (tail) { nama = m[1].trim(); jk = tail; }
+  }
+  if (!jk) {
+    var m2 = s.match(/^(.*) - ([^ ]+)$/);
+    if (m2) {
+      var tail2 = normalisasiJkJs_(m2[2]);
+      if (tail2) { nama = m2[1].trim(); jk = tail2; }
+    }
+  }
+  nama = nama.replace(/\s+/g, ' ').trim();
+  if (!nama) return null;
+  return { nama: nama, jenis_kelamin: jk };
+}
+
 HAL.guru.kelas = async function () {
   var el = $('hal-guru-kelas');
   el.innerHTML = '<h2>Kelas &amp; Siswa</h2><p class="muat">Memuat…</p>';
@@ -69,6 +103,17 @@ HAL.guru.kelas = async function () {
     '<label><input name="pintar" type="checkbox"> Siswa pintar</label>' +
     '<button type="submit" class="tombol utama">Tambah Siswa</button>' +
     '</form><p id="error-siswa-tambah" class="error" hidden></p>' +
+    '<h3>Tambah Siswa Massal</h3>' +
+    '<p class="muted">Untuk kelas baru: tempel daftar nama siswa, satu nama per baris. Boleh ditambah jenis kelamin di belakang nama, mis. <code>Andi Pratama, L</code> atau <code>Siti Aminah - P</code>. Nama yang sudah ada di kelas itu dilewati (duplikat), baris yang meragukan masuk Verifikasi.</p>' +
+    '<div class="form-inline"><label>Kelas<select id="massal-kelas">' + opsiKelas(_kelasCache, false) + '</select></label></div>' +
+    '<textarea id="teks-massal" rows="6" placeholder="Andi Pratama, L&#10;Siti Aminah, P&#10;Budi Santoso"></textarea>' +
+    '<button type="button" class="tombol utama" id="btn-tambah-massal">Tambah semua siswa</button>' +
+    '<div id="hasil-massal"></div>' +
+    '<h3>Isi Jenis Kelamin Massal</h3>' +
+    '<p class="muted">Siswa yang jenis kelaminnya masih kosong tampil di bawah. Pilih L/P tiap baris, lalu simpan sekaligus — tidak perlu buka Edit satu per satu.</p>' +
+    '<div class="form-inline"><label>Kelas<select id="jk-massal-kelas">' + opsiKelas(_kelasCache, true) + '</select></label>' +
+    '<button type="button" class="tombol kecil" id="btn-muat-jk-kosong">Tampilkan yang kosong</button></div>' +
+    '<div id="daftar-jk-kosong"></div>' +
     '<div id="panel-edit-siswa" hidden><h3>Edit Siswa</h3>' +
     '<form id="form-edit-siswa" class="form-inline">' +
     '<input type="hidden" name="id_siswa">' +
@@ -345,6 +390,105 @@ HAL.guru.kelas = async function () {
     target.innerHTML = h;
     muatSiswa($('filter-siswa-kelas').value);
   });
+
+  /* ---------- Tambah siswa massal (tempel daftar nama) ---------- */
+
+  $('btn-tambah-massal').addEventListener('click', async function () {
+    var btn = $('btn-tambah-massal');
+    if (btn.disabled) return;
+    var kelas = $('massal-kelas').value;
+    if (!kelas) { toast('Pilih kelas dulu.'); return; }
+    var baris = $('teks-massal').value.split('\n').map(uraiBarisNamaMassal).filter(function (x) { return !!x; });
+    if (!baris.length) { toast('Tempel dulu daftar namanya — satu nama per baris.'); return; }
+    var data = baris.map(function (b) {
+      return { nama: b.nama, kelas: kelas, email: '', pintar: false, jenis_kelamin: b.jenis_kelamin };
+    });
+    btn.disabled = true;
+    var target = $('hasil-massal');
+    target.innerHTML = '<p class="muat">Menambahkan ' + data.length + ' siswa…</p>';
+    var hasil = { diimpor: 0, dilewatiDuplikat: 0, masukVerifikasi: [], diimporNama: [] };
+    var gagal = false;
+    for (var c = 0; c < data.length; c += 20) {
+      var res = await api('importSiswa', guruPayload({ rows: data.slice(c, c + 20) }));
+      if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; gagal = true; break; }
+      hasil.diimpor += res.data.diimpor;
+      hasil.dilewatiDuplikat += res.data.dilewatiDuplikat;
+      hasil.masukVerifikasi = hasil.masukVerifikasi.concat(res.data.masukVerifikasi);
+      hasil.diimporNama = hasil.diimporNama.concat(res.data.diimporNama);
+    }
+    btn.disabled = false;
+    if (gagal) return;
+    var h = '<p class="sukses-teks">Selesai: ' + hasil.diimpor + ' ditambahkan, ' + hasil.dilewatiDuplikat + ' duplikat dilewati, ' + hasil.masukVerifikasi.length + ' masuk verifikasi.</p>';
+    if (hasil.masukVerifikasi.length) {
+      h += '<div class="tabel-wrap"><table><tr><th>Baris</th><th>Nama</th><th>Kelas</th><th>Alasan</th></tr>';
+      hasil.masukVerifikasi.forEach(function (v) {
+        h += '<tr><td>' + esc(v.baris) + '</td><td>' + esc(v.nama) + '</td><td>' + esc(v.kelas) + '</td><td>' + esc(v.alasan) + '</td></tr>';
+      });
+      h += '</table></div>';
+    }
+    target.innerHTML = h;
+    muatSiswa($('filter-siswa-kelas').value);
+  });
+
+  /* ---------- Isi jenis kelamin massal ---------- */
+
+  var muatJkKosong = async function () {
+    var kelas = $('jk-massal-kelas').value;
+    var target = $('daftar-jk-kosong');
+    target.innerHTML = '<p class="muat">Memuat…</p>';
+    var res = await api('listSiswa', guruPayload({ kelas: kelas || undefined }));
+    if (!res.ok) { target.innerHTML = '<p class="error">' + esc(res.error) + '</p>'; return; }
+    var kosong = res.data.filter(function (s) { return !s.jenis_kelamin; });
+    if (!kosong.length) {
+      target.innerHTML = '<p class="sukses-teks">Semua siswa' + (kelas ? ' kelas "' + esc(kelas) + '"' : '') + ' sudah punya jenis kelamin.</p>';
+      return;
+    }
+    var h = '<p class="muted">' + kosong.length + ' siswa belum punya jenis kelamin.</p>' +
+      '<div class="form-inline"><button type="button" class="tombol kecil" id="btn-simpan-jk">Simpan jenis kelamin yang dipilih (0)</button></div>' +
+      '<div class="tabel-wrap"><table><tr><th>Siswa</th><th>Kelas</th><th>Jenis kelamin</th></tr>';
+    kosong.forEach(function (s) {
+      h += '<tr><td>' + esc(s.nama) + '</td><td>' + esc(s.kelas) + '</td>' +
+        '<td><select class="pilih-jk" data-id-siswa="' + esc(s.id_siswa) + '"><option value="">— pilih —</option>' +
+        '<option value="L">Laki-laki</option><option value="P">Perempuan</option></select></td></tr>';
+    });
+    h += '</table></div><div id="hasil-simpan-jk"></div>';
+    target.innerHTML = h;
+    var perbaruiHitung = function () {
+      var n = 0;
+      target.querySelectorAll('.pilih-jk').forEach(function (sel) { if (sel.value) n++; });
+      $('btn-simpan-jk').textContent = 'Simpan jenis kelamin yang dipilih (' + n + ')';
+    };
+    target.querySelectorAll('.pilih-jk').forEach(function (sel) {
+      sel.addEventListener('change', perbaruiHitung);
+    });
+    $('btn-simpan-jk').addEventListener('click', async function () {
+      var btn = $('btn-simpan-jk');
+      if (btn.disabled) return;
+      var items = [];
+      target.querySelectorAll('.pilih-jk').forEach(function (sel) {
+        if (sel.value) items.push({ id_siswa: sel.getAttribute('data-id-siswa'), jenis_kelamin: sel.value });
+      });
+      if (!items.length) { toast('Pilih dulu jenis kelamin minimal satu siswa.'); return; }
+      btn.disabled = true;
+      var res2 = await api('isiJenisKelaminBanyak', guruPayload({ items: items }));
+      btn.disabled = false;
+      var t2 = $('hasil-simpan-jk');
+      if (!res2.ok) { t2.innerHTML = '<p class="error">' + esc(res2.error) + '</p>'; return; }
+      var d = res2.data;
+      var hh = '<p class="sukses-teks">Disimpan: ' + d.disimpan + ' siswa' + (d.gagal.length ? ', gagal: ' + d.gagal.length : '') + '.</p>';
+      if (d.gagal.length) {
+        hh += '<div class="tabel-wrap"><table><tr><th>Siswa</th><th>Alasan</th></tr>';
+        d.gagal.forEach(function (g) {
+          hh += '<tr><td>' + esc(g.nama || g.id_siswa) + '</td><td>' + esc(g.error) + '</td></tr>';
+        });
+        hh += '</table></div>';
+      }
+      t2.innerHTML = hh;
+      muatJkKosong();
+    });
+  };
+
+  $('btn-muat-jk-kosong').addEventListener('click', muatJkKosong);
 
   var muatInfoHapusMassal = async function () {
     var kelas = $('hapus-massal-kelas').value;
