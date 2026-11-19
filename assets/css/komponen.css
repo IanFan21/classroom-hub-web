@@ -221,3 +221,8 @@ input[type="checkbox"], input[type="radio"] {
   .form-inline label { flex: 1 1 100%; }
   .form-inline select, .form-inline input:not([type="checkbox"]):not([type="radio"]) { width: 100%; }
 }
+
+/* Opsi jawaban PG di halaman Kerjakan: radio menempel di kiri teks
+   (bukan di baris sendiri seperti input blok biasa). */
+.opsi-pg label { display: flex; align-items: center; gap: 8px; font-weight: normal; }
+.opsi-pg input[type="radio"] { display: inline-block; width: 18px; min-width: 0; margin: 0; border: 0; background: transparent; }
