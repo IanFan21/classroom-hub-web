@@ -226,3 +226,24 @@ input[type="checkbox"], input[type="radio"] {
    (bukan di baris sendiri seperti input blok biasa). */
 .opsi-pg label { display: flex; align-items: center; gap: 8px; font-weight: normal; }
 .opsi-pg input[type="radio"] { display: inline-block; width: 18px; min-width: 0; margin: 0; border: 0; background: transparent; }
+
+/* Fitur dilipat */
+details.lipat { margin: 10px 0; background: var(--putih); border: 1px solid var(--garis); border-radius: var(--radius); transition: border-color .15s, box-shadow .15s; }
+details.lipat:hover { border-color: var(--biru-40); }
+details.lipat[open] { border-color: var(--biru); box-shadow: var(--bayangan); }
+details.lipat > summary {
+  display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 10px 14px;
+  list-style: none; cursor: pointer; font-weight: 700; color: var(--biru); border-radius: var(--radius);
+}
+details.lipat > summary::-webkit-details-marker { display: none; }
+details.lipat > summary:hover { background: var(--biru-muda); }
+details.lipat[open] > summary { border-bottom: 1px solid var(--biru-muda); border-radius: var(--radius) var(--radius) 0 0; }
+.lipat-ikon { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--emas-muda); color: var(--biru); }
+.lipat-judul { flex: 1; min-width: 0; }
+.lipat-panah { display: grid; place-items: center; color: var(--teks-redup); transition: transform .2s ease; }
+details.lipat[open] > summary .lipat-panah { transform: rotate(180deg); }
+.lipat-isi { padding: 6px 16px 16px; }
+.lipat-isi > :first-child { margin-top: 10px; }
+@media (prefers-reduced-motion: no-preference) { details.lipat[open] > .lipat-isi { animation: masuk .22s ease-out both; } }
+.lipat-alat { display: flex; justify-content: flex-end; gap: 16px; margin: 6px 2px -2px; font-size: .88rem; }
+@media (max-width: 600px) { .lipat-isi { padding: 4px 12px 14px; } details.lipat > summary { padding: 10px 12px; } }

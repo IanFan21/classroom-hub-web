@@ -104,3 +104,7 @@ digantikan modul di atas — jangan dibuat lagi.
 Dibuat untuk dipakai di kelas sendiri — kalau mau dipakai atau diubah
 untuk sekolahmu, silakan. Kalau menemukan yang aneh atau ada ide,
 buka saja issue di repo ini.
+
+## Fitur dilipat
+
+Di menu guru, tiap bagian (judul `<h3>` + isinya) otomatis menjadi panel yang dibuka dengan klik. Daftar dan rekap terbuka dari awal, form dan pengaturan tertutup; ada tombol "Buka semua / Tutup semua". Fitur baru cukup memakai `<h3>` sebagai judul. Batas bagian: elemen dengan `data-lipat-akhir`. Logikanya di `assets/js/core/lipat.js`.

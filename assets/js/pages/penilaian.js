@@ -19,7 +19,7 @@ HAL.guru.penilaian = async function () {
     '<label>Sampai<input name="tenggat" type="date" required value="' + hariIni() + '"></label>' +
     '<button type="submit" class="tombol utama">Buat praktek</button>' +
     '</form><p id="error-praktek" class="error" hidden></p>' +
-    '<div id="daftar-nilai"></div>';
+    '<div id="daftar-nilai" data-lipat-akhir></div>';
 
   if (!_kelasCache.length) {
     var rk = await api('listKelas', guruPayload());
