@@ -86,8 +86,16 @@ HAL.guru.materi = async function () {
       // tidak bisa membaca jawaban server, jadi tanpa cek ini kegagalan
       // server akan terlihat seperti berhasil (laporan 21 Nov 2026).
       var cek = await api('listMateri', guruPayload({ kelas: dasar.kelas, termasukArsip: true }));
+      if (!cek.ok) {
+        // Daftarnya sendiri tidak bisa dimuat — biasanya sesi guru sudah
+        // berakhir. Ini penyebab yang berbeda dari "server menolak file",
+        // jadi pesannya dibedakan supaya tidak menyesatkan.
+        tunjukError('error-materi', 'Tidak bisa memeriksa daftar: ' + cek.error + ' Coba keluar lalu login lagi sebagai guru, lalu upload ulang.');
+        if (tombolMateri) tombolMateri.disabled = false;
+        return;
+      }
       var judulCek = String(dasar.judul).trim().toLowerCase();
-      var masuk = cek.ok && cek.data.some(function (m) { return String(m.judul).trim().toLowerCase() === judulCek; });
+      var masuk = cek.data.some(function (m) { return String(m.judul).trim().toLowerCase() === judulCek; });
       if (masuk) { toast('Materi ditambahkan.'); HAL.guru.materi(); }
       else {
         tunjukError('error-materi', 'Upload tidak masuk ke daftar — server menolak file ini. Coba lagi; kalau masih gagal, kirim filenya lewat chat supaya dicek.');

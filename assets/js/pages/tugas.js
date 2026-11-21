@@ -101,8 +101,13 @@ HAL.guru.tugas = async function () {
       // daftar (alasan yang sama seperti di materi.js — POST no-cors
       // tidak bisa membaca jawaban server).
       var cekTugas = await api('listTugas', guruPayload({}));
+      if (!cekTugas.ok) {
+        tunjukError('error-tugas', 'Tidak bisa memeriksa daftar: ' + cekTugas.error + ' Coba keluar lalu login lagi sebagai guru, lalu upload ulang.');
+        btnSimpan.disabled = false;
+        return;
+      }
       var judulTugasCek = String(dasar.judul).trim().toLowerCase();
-      var masukTugas = cekTugas.ok && cekTugas.data.some(function (t) {
+      var masukTugas = cekTugas.data.some(function (t) {
         return String(t.judul).trim().toLowerCase() === judulTugasCek &&
           String(t.kelas).trim().toLowerCase() === String(dasar.kelas).trim().toLowerCase();
       });
