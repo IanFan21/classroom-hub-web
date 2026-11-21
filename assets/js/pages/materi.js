@@ -74,13 +74,25 @@ HAL.guru.materi = async function () {
     } else {
       var file = $('file-materi').files[0];
       if (!file) { tunjukError('error-materi', 'Pilih file dulu.'); return; }
+      var tombolMateri = ev.target.querySelector('button[type="submit"]');
+      if (tombolMateri) tombolMateri.disabled = true;
       var base64 = await fileKeBase64(file);
       var up = await apiUpload('uploadMateri', guruPayload(Object.assign(dasar, {
         namaFile: file.name, mimeType: file.type, size: file.size, base64: base64
       })));
-      if (!up.ok) { tunjukError('error-materi', up.error); return; }
-      toast('File diunggah — memverifikasi…');
-      setTimeout(function () { HAL.guru.materi(); }, 1500);
+      if (!up.ok) { tunjukError('error-materi', up.error); if (tombolMateri) tombolMateri.disabled = false; return; }
+      // Verifikasi sungguhan (bukan sekadar toast): muat ulang daftar dan
+      // pastikan judul yang baru diunggah benar-benar ada. POST no-cors
+      // tidak bisa membaca jawaban server, jadi tanpa cek ini kegagalan
+      // server akan terlihat seperti berhasil (laporan 21 Nov 2026).
+      var cek = await api('listMateri', guruPayload({ kelas: dasar.kelas, termasukArsip: true }));
+      var judulCek = String(dasar.judul).trim().toLowerCase();
+      var masuk = cek.ok && cek.data.some(function (m) { return String(m.judul).trim().toLowerCase() === judulCek; });
+      if (masuk) { toast('Materi ditambahkan.'); HAL.guru.materi(); }
+      else {
+        tunjukError('error-materi', 'Upload tidak masuk ke daftar — server menolak file ini. Coba lagi; kalau masih gagal, kirim filenya lewat chat supaya dicek.');
+        if (tombolMateri) tombolMateri.disabled = false;
+      }
     }
   });
 

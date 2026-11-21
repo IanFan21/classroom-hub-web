@@ -97,8 +97,20 @@ HAL.guru.tugas = async function () {
         namaFile: file.name, mimeType: file.type, size: file.size, base64: base64
       })));
       if (!up.ok) { tunjukError('error-tugas', up.error); btnSimpan.disabled = false; return; }
-      toast('File diunggah — memverifikasi…');
-      setTimeout(function () { HAL.guru.tugas(); }, 1500);
+      // Verifikasi sungguhan: pastikan judul tugas benar-benar ada di
+      // daftar (alasan yang sama seperti di materi.js — POST no-cors
+      // tidak bisa membaca jawaban server).
+      var cekTugas = await api('listTugas', guruPayload({}));
+      var judulTugasCek = String(dasar.judul).trim().toLowerCase();
+      var masukTugas = cekTugas.ok && cekTugas.data.some(function (t) {
+        return String(t.judul).trim().toLowerCase() === judulTugasCek &&
+          String(t.kelas).trim().toLowerCase() === String(dasar.kelas).trim().toLowerCase();
+      });
+      if (masukTugas) { toast('Tugas ditambahkan.'); HAL.guru.tugas(); }
+      else {
+        tunjukError('error-tugas', 'Upload tidak masuk ke daftar — server menolak file ini. Coba lagi; kalau masih gagal, kirim filenya lewat chat supaya dicek.');
+        btnSimpan.disabled = false;
+      }
     } else {
       var res2 = await api('tambahTugas', guruPayload(dasar));
       if (!res2.ok) { tunjukError('error-tugas', res2.error); btnSimpan.disabled = false; return; }
@@ -329,7 +341,10 @@ function tampilFormKumpul(idTugas) {
         id_tugas: idTugas, namaFile: file.name, mimeType: file.type, size: file.size, base64: base64
       }));
       if (!up.ok) { tunjukError('error-kumpul', up.error); return; }
-      toast('File diunggah — memverifikasi…');
+      // POST no-cors tidak bisa membaca jawaban server, jadi tidak ada
+      // klaim "terverifikasi" di sini — halaman daftar tugas yang
+      // dimuat ulang menunjukkan status pengumpulan yang sebenarnya.
+      toast('File terkirim — cek statusnya di daftar tugas.');
       setTimeout(function () { HAL.siswa.tugas(); }, 1500);
     }
   });
