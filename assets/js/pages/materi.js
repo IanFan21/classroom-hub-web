@@ -1,5 +1,28 @@
 /* ---------- Materi ---------- */
 
+/* Ambil ID file Drive dari link yang disimpan (format /file/d/<id>/view
+   atau /document/d/<id>/edit). Kosong bila bukan link Drive. */
+function ambilIdFileDrive(link) {
+  var m = String(link || '').match(/\/d\/([A-Za-z0-9_-]+)/);
+  return m ? m[1] : '';
+}
+
+/* Tampilkan pratinjau file Drive di dalam aplikasi (iframe). Hanya untuk
+   materi jenis file; tautan luar tetap dibuka lewat "Buka". Pratinjau
+   memuat dari Drive dengan akun yang membuka — file harus sudah dibagikan
+   "siapa saja yang punya link" (aturan v17) supaya siswa bisa melihat. */
+function tampilPratinjauMateri(fileId, judul, link) {
+  var wadah = $('pratinjau-materi');
+  if (!wadah) return;
+  wadah.innerHTML = '<div class="pratinjau-materi"><div class="form-inline"><strong>Pratinjau: ' + esc(judul) + '</strong>' +
+    '<button class="tombol kecil" id="btn-tutup-pratinjau" type="button">Tutup</button>' +
+    '<a class="tombol kecil" href="' + esc(link) + '" target="_blank" rel="noopener">Buka di tab baru</a></div>' +
+    '<iframe src="https://drive.google.com/file/d/' + esc(fileId) + '/preview" title="Pratinjau materi"></iframe></div>';
+  var tutup = $('btn-tutup-pratinjau');
+  if (tutup) tutup.addEventListener('click', function () { wadah.innerHTML = ''; });
+  wadah.scrollIntoView();
+}
+
 function tabelMateri(list, bisaArsip) {
   if (!list.length) return kosongHtml('materi', 'Belum ada materi', 'Materi yang diunggah akan muncul di sini.');
   var h = '<div class="tabel-wrap"><table><tr><th>Judul</th><th>Kelas</th><th>Topik</th><th>Jenis</th><th>Tautan</th><th>Dibuat</th>';
@@ -8,7 +31,10 @@ function tabelMateri(list, bisaArsip) {
   list.forEach(function (m) {
     h += '<tr><td>' + esc(m.judul) + (m.deskripsi ? '<br><span class="muted">' + esc(m.deskripsi) + '</span>' : '') + '</td>' +
       '<td>' + esc(m.kelas) + '</td><td>' + esc(m.topik) + '</td><td>' + esc(m.jenis) + '</td>' +
-      '<td><a href="' + esc(m.link_drive) + '" target="_blank" rel="noopener">Buka</a></td>' +
+      '<td><a href="' + esc(m.link_drive) + '" target="_blank" rel="noopener">Buka</a>' +
+      (m.jenis === 'file' && ambilIdFileDrive(m.link_drive)
+        ? ' <button class="tombol kecil" data-lihat-materi="' + esc(ambilIdFileDrive(m.link_drive)) + '" data-judul-materi="' + esc(m.judul) + '" data-link-materi="' + esc(m.link_drive) + '">Lihat</button>'
+        : '') + '</td>' +
       '<td>' + esc(m.dibuat_pada) + '</td>';
     if (bisaArsip) {
       h += '<td>' + (m.diarsipkan
@@ -39,7 +65,8 @@ HAL.guru.materi = async function () {
     '<label>Cari<input id="filter-materi-q" placeholder="judul/deskripsi"></label>' +
     '<label><input type="checkbox" id="filter-materi-arsip"> Termasuk arsip</label>' +
     '<button class="tombol kecil" id="btn-muat-materi">Muat</button></div>' +
-    '<div id="daftar-materi"><p class="muat">Memuat…</p></div>';
+    '<div id="daftar-materi"><p class="muat">Memuat…</p></div>' +
+    '<div id="pratinjau-materi"></div>';
 
   if (!_kelasCache.length) {
     var rk = await api('listKelas', guruPayload());
@@ -130,6 +157,11 @@ HAL.guru.materi = async function () {
         muat();
       });
     });
+    target.querySelectorAll('[data-lihat-materi]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        tampilPratinjauMateri(b.getAttribute('data-lihat-materi'), b.getAttribute('data-judul-materi'), b.getAttribute('data-link-materi'));
+      });
+    });
   };
 
   $('btn-muat-materi').addEventListener('click', muat);
@@ -141,6 +173,11 @@ HAL.siswa.materi = async function () {
   el.innerHTML = '<h2>Materi Kelas Saya</h2><p class="muat">Memuat…</p>';
   var res = await api('listMateri', siswaPayload());
   if (!res.ok) { el.innerHTML = '<h2>Materi</h2><p class="error">' + esc(res.error) + '</p>'; return; }
-  el.innerHTML = '<h2>Materi Kelas Saya</h2>' + tabelMateri(res.data, false);
+  el.innerHTML = '<h2>Materi Kelas Saya</h2>' + tabelMateri(res.data, false) + '<div id="pratinjau-materi"></div>';
+  el.querySelectorAll('[data-lihat-materi]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      tampilPratinjauMateri(b.getAttribute('data-lihat-materi'), b.getAttribute('data-judul-materi'), b.getAttribute('data-link-materi'));
+    });
+  });
 };
 
